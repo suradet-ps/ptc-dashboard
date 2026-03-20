@@ -5,12 +5,13 @@
 **Pharmacy and Therapeutics Committee (PTC) Quality Improvement Tracker**  
 Originally developed for Sabot Hospital
 
-[![Vue.js](https://img.shields.io/badge/Vue.js-3.5-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Pinia](https://img.shields.io/badge/Pinia-2.2-FFE56B?style=for-the-badge&logo=vue.js&logoColor=black)](https://pinia.vuejs.org/)
-[![Google Apps Script](https://img.shields.io/badge/GAS_Backend-API-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://developers.google.com/apps-script)
-[![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Vue](https://img.shields.io/badge/Vue-3.5+-4FC08D?logo=vue.js)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.0+-646CFF?logo=vite)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1+-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
+[![Pinia](https://img.shields.io/badge/Pinia-2.2+-FFE56B?logo=vuedotjs)](https://pinia.vuejs.org/)
+[![Google Apps Script](https://img.shields.io/badge/Google_Apps_Script-API-4285F4?logo=google)](https://developers.google.com/apps-script)
+[![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?logo=vercel)](https://vercel.com/)
 
 [Report Bug](https://github.com/pharmacist-sabot/ptc-dashboard/issues) · [Request Feature](https://github.com/pharmacist-sabot/ptc-dashboard/issues)
 
