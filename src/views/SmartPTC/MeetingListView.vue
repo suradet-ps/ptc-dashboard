@@ -39,6 +39,12 @@ async function handleCreateMeeting() {
   isCreating.value = false;
   newMeeting.value = { date: '', title: '' };
 }
+
+function formatThaiDate(dateStr: string) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+}
 </script>
 
 <template>
@@ -95,7 +101,7 @@ async function handleCreateMeeting() {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div v-for="m in activeMeetings" :key="m.id" class="card p-5 cursor-pointer hover:border-[var(--color-signal)]" @click="router.push(`/smart-ptc/meeting/${m.id}`)">
             <h3 class="font-bold text-lg text-[var(--color-signal)]">{{ m.title }}</h3>
-            <p class="text-sm mt-1 font-mono text-[var(--color-dim)]">{{ m.date }}</p>
+            <p class="text-sm mt-1 font-mono text-[var(--color-dim)]">{{ formatThaiDate(m.date) }}</p>
           </div>
         </div>
       </section>
@@ -107,7 +113,7 @@ async function handleCreateMeeting() {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div v-for="m in upcomingMeetings" :key="m.id" class="card p-5 cursor-pointer" @click="router.push(`/smart-ptc/meeting/${m.id}`)">
             <h3 class="font-bold">{{ m.title }}</h3>
-            <p class="text-sm mt-1 font-mono text-[var(--color-dim)]">{{ m.date }}</p>
+            <p class="text-sm mt-1 font-mono text-[var(--color-dim)]">{{ formatThaiDate(m.date) }}</p>
           </div>
         </div>
       </section>
@@ -120,7 +126,7 @@ async function handleCreateMeeting() {
           <div v-for="m in pastMeetings" :key="m.id" class="card p-4 flex justify-between items-center">
             <div>
               <h3 class="font-bold text-[var(--color-text-sub)]">{{ m.title }}</h3>
-              <p class="text-sm font-mono text-[var(--color-muted)]">{{ m.date }}</p>
+              <p class="text-sm font-mono text-[var(--color-muted)]">{{ formatThaiDate(m.date) }}</p>
             </div>
             <button @click="router.push(`/smart-ptc/meeting/${m.id}`)" class="btn-ghost text-sm">ดูรายงาน</button>
           </div>

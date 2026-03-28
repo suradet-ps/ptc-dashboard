@@ -47,6 +47,12 @@ async function submitAgenda() {
     alert('การบันทึกล้มเหลว: ' + e.message);
   }
 }
+
+function formatThaiDate(dateStr: string) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+}
 </script>
 
 <template>
@@ -75,7 +81,7 @@ async function submitAgenda() {
           <select v-model="form.meetingId" class="field bg-white">
             <option value="" disabled>-- เลือกการประชุม --</option>
             <option v-for="m in availableMeetings" :key="m.id" :value="m.id">
-              {{ m.title }} ({{ m.date }})
+              {{ m.title }} ({{ formatThaiDate(m.date) }})
             </option>
           </select>
           <p v-if="availableMeetings.length === 0 && !loading" class="text-xs text-[var(--color-warn)] mt-2">ยังไม่มีการประชุมที่ถูกสร้างไว้ กรุณาสร้างการประชุมก่อน</p>

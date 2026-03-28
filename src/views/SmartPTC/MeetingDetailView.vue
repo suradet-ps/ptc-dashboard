@@ -46,6 +46,16 @@ async function markAsCompleted() {
 function openPrintView() {
   window.open(`/smart-ptc/meeting/${meetingId}/print`, '_blank');
 }
+
+function openAgendaExport() {
+  window.open(`/smart-ptc/meeting/${meetingId}/agenda-print`, '_blank');
+}
+
+function formatThaiDate(dateStr: string) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+}
 </script>
 
 <template>
@@ -55,19 +65,22 @@ function openPrintView() {
       <div v-if="meeting">
         <h1 class="text-3xl font-bold text-glow-signal">{{ meeting.title }}</h1>
         <p class="text-sm mt-1" style="color: var(--color-dim)">
-          วันที่: {{ meeting.date }} | สถานะ: <span class="capitalize">{{ meeting.status }}</span>
+          วันที่: {{ formatThaiDate(meeting.date) }} | สถานะ: <span class="capitalize">{{ meeting.status }}</span>
         </p>
       </div>
       <div v-else class="text-[var(--color-muted)]">กำลังโหลด...</div>
     </div>
 
     <!-- Actions -->
-    <div v-if="meeting" class="flex gap-3 mb-8">
+    <div v-if="meeting" class="flex flex-wrap gap-3 mb-8">
       <button v-if="meeting.status !== 'completed'" @click="markAsCompleted" class="btn-primary" style="background: var(--color-ok)">
         &#10003; จบการประชุม
       </button>
+      <button @click="openAgendaExport" class="btn-ghost bg-white border-[var(--color-border)]">
+        &#128196; พิมพ์ระเบียบวาระ (ก่อนประชุม)
+      </button>
       <button @click="openPrintView" class="btn-ghost bg-white border-[var(--color-border)]">
-        &#128438; พิมพ์รายงานการประชุม (PDF)
+        &#128438; พิมพ์รายงานการประชุม (หลังประชุม)
       </button>
     </div>
 

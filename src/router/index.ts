@@ -28,6 +28,11 @@ const router = createRouter({
       path: '/smart-ptc/meeting/:id/print',
       name: 'smart-ptc-meeting-print',
       component: () => import('@/views/SmartPTC/MeetingReportPrint.vue')
+    },
+    {
+      path: '/smart-ptc/meeting/:id/agenda-print',
+      name: 'smart-ptc-agenda-print',
+      component: () => import('@/views/SmartPTC/AgendaExportPrint.vue')
     }
   ]
 })
