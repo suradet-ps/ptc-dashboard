@@ -40,7 +40,6 @@ function formatSync(d: Date | null) {
 <template>
   <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[var(--color-border)] shadow-sm">
     <div class="max-w-screen-2xl mx-auto px-6 h-16 flex items-center gap-6">
-      
       <!-- Brand -->
       <router-link to="/" class="flex flex-col shrink-0 hover:opacity-80 transition-opacity">
         <div class="font-black text-xl leading-none tracking-tight text-[var(--color-signal)]">
@@ -73,11 +72,10 @@ function formatSync(d: Date | null) {
       <div class="h-6 w-px bg-[var(--color-border)] hidden md:block ml-2" />
 
       <!-- Center flex spacer -->
-      <div class="flex-1 min-w-0 hidden md:block"></div>
+      <div class="flex-1 min-w-0 hidden md:block" />
 
       <!-- Right section -->
       <div class="flex items-center gap-4 shrink-0">
-        
         <!-- Overall progress pill -->
         <div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-[var(--color-void)] border border-[var(--color-border)] rounded-full shadow-inner">
           <div class="w-2 h-2 rounded-full animate-pulse bg-[var(--color-pulse)]" />
@@ -88,8 +86,8 @@ function formatSync(d: Date | null) {
         <!-- Sync button -->
         <button
           class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full transition-all border shadow-sm"
-          :class="loading 
-            ? 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-dim)] cursor-wait' 
+          :class="loading
+            ? 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-dim)] cursor-wait'
             : 'bg-white border-[var(--color-border)] text-[var(--color-text-sub)] hover:bg-[var(--color-void)] hover:border-[var(--color-dim)]'"
           :disabled="loading"
           @click="store.syncFromSheet()"

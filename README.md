@@ -2,7 +2,7 @@
 
 # PTC Monitor Dashboard
 
-**Pharmacy and Therapeutics Committee (PTC) Quality Improvement Tracker**  
+**Pharmacy and Therapeutics Committee (PTC) Quality Improvement Tracker**
 Originally developed for Sabot Hospital
 
 [![Vue](https://img.shields.io/badge/Vue-3.5+-4FC08D?logo=vue.js)](https://vuejs.org/)
@@ -40,7 +40,7 @@ Originally developed for Sabot Hospital
 
 ## Overview & Features
 
-This dashboard helps the PTC team track the status and progress of 12 critical actions across 3 improvement proposals. 
+This dashboard helps the PTC team track the status and progress of 12 critical actions across 3 improvement proposals.
 
 - **Clinical Dark Interface:** Designed for extended professional use with a high-contrast dark theme, custom EKG pulse animations, and integrated sparkline charts.
 - **Optimistic UI Updates:** Instant visual feedback when updating action statuses or progress, ensuring a responsive user experience while background synchronization occurs.
@@ -56,7 +56,7 @@ This dashboard helps the PTC team track the status and progress of 12 critical a
 graph LR
     A[Vue 3 + Tailwind Client] <-->|Axios GET / POST| B(Google Apps Script Web App)
     B <-->|SpreadsheetApp| C[(Google Sheets)]
-    
+
     style A fill:#0f172a,stroke:#00d4aa,stroke-width:2px,color:#fff
     style B fill:#1e40af,stroke:#60a5fa,stroke-width:2px,color:#fff
     style C fill:#065f46,stroke:#34d399,stroke-width:2px,color:#fff
@@ -71,6 +71,7 @@ graph LR
 ## Getting Started
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - A Google Account (to create the backing Google Sheet and Apps Script)
 
@@ -117,6 +118,7 @@ The project is pre-configured for seamless deployment on **Vercel** via the incl
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYOUR_ORG%2Fptc-dashboard&env=VITE_GAS_URL)
 
 **Manual Vercel Deployment:**
+
 1. Push your code to a GitHub repository.
 2. Import the repository into your Vercel dashboard.
 3. Ensure the Framework Preset is set to **Vite**.
@@ -131,16 +133,16 @@ The project is pre-configured for seamless deployment on **Vercel** via the incl
 
 Upon the first API execution, the Google Apps Script will automatically generate a sheet named `ActionProgress` with the following columns:
 
-| Column | Type | Description |
-| :--- | :--- | :--- |
-| `id` | String | Unique action identifier (e.g., `R1A1`, `R2A3`) |
-| `status` | String | `not_started`, `in_progress`, `completed`, `delayed`, `blocked` |
-| `progressPct`| Number | Completion percentage (0-100) |
-| `actualValue`| String | The actual recorded KPI value |
-| `notes` | String | Free-text operational notes |
-| `blockers` | String | Documented risks or obstacles |
-| `lastUpdated`| ISO Date| Timestamp of the last modification |
-| `updatedBy` | String | Identifier of the user making the update |
+| Column        | Type     | Description                                                     |
+| :------------ | :------- | :-------------------------------------------------------------- |
+| `id`          | String   | Unique action identifier (e.g., `R1A1`, `R2A3`)                 |
+| `status`      | String   | `not_started`, `in_progress`, `completed`, `delayed`, `blocked` |
+| `progressPct` | Number   | Completion percentage (0-100)                                   |
+| `actualValue` | String   | The actual recorded KPI value                                   |
+| `notes`       | String   | Free-text operational notes                                     |
+| `blockers`    | String   | Documented risks or obstacles                                   |
+| `lastUpdated` | ISO Date | Timestamp of the last modification                              |
+| `updatedBy`   | String   | Identifier of the user making the update                        |
 
 ---
 
