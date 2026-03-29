@@ -1,5 +1,3 @@
-<div align="center">
-
 # PTC Monitor Dashboard
 
 **Pharmacy and Therapeutics Committee (PTC) Quality Improvement Tracker**
@@ -14,8 +12,6 @@ Originally developed for Sabot Hospital
 [![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?logo=vercel)](https://vercel.com/)
 
 [Report Bug](https://github.com/pharmacist-sabot/ptc-dashboard/issues) · [Request Feature](https://github.com/pharmacist-sabot/ptc-dashboard/issues)
-
-</div>
 
 ---
 
@@ -78,16 +74,21 @@ graph LR
 ### 1. Frontend Setup
 
 1. Clone the repository and install dependencies:
+
    ```bash
    git clone https://github.com/pharmacist-sabot/ptc-dashboard.git
    cd ptc-dashboard
    npm install
    ```
+
 2. Set up your local environment variables:
+
    ```bash
    cp .env.example .env.local
    ```
+
 3. Start the development server (Note: You must complete the GAS setup below and update `VITE_GAS_URL` in your `.env.local` before the app can fetch data):
+
    ```bash
    npm run dev
    ```
@@ -105,6 +106,7 @@ graph LR
 6. Click **Deploy** and authorize the required permissions.
 7. Copy the generated **Web app URL**.
 8. Paste the URL into your `.env.local` file:
+
    ```env
    VITE_GAS_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
    ```
@@ -148,26 +150,17 @@ Upon the first API execution, the Google Apps Script will automatically generate
 
 ## Security & Privacy
 
-- **Data Sensitivity:** This application is strictly intended for tracking operational processes and policy implementation. **Do not** store Protected Health Information (PHI), patient identifiers, or highly confidential institutional data in this system.
-- **Endpoint Protection:** Treat your GAS Web App URL as a sensitive credential. Do not commit it to public version control. Utilize proper secret management (e.g., Vercel Environment Variables).
-- **Access Control:** Restrict the sharing permissions of the backend Google Sheet to authorized personnel only.
+Please read our [Security Policy](SECURITY.md) for details on supported versions, how to report vulnerabilities, and our data sensitivity guidelines.
 
 ---
 
 ## Contributing
 
-Contributions to improve the application architecture, UI, or backend scripts are welcome.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+We welcome contributions! Please refer to our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ---
 
 ## License & Disclaimer
 
-- This project was originally developed for internal process management at the **Sabot Hospital Pharmacy Department**.
-- The source code is provided as an open-source reference and can be adapted for your institution's requirements.
-- **Disclaimer:** The authors and associated institutions accept no liability for data loss, breaches, or operational failures resulting from the use or misconfiguration of this software. Always ensure compliance with your local healthcare data governance policies.
+- The source code in this project is licensed under the [MIT License](LICENSE).
+- **Disclaimer:** This project was originally developed for internal process management at the Sabot Hospital Pharmacy Department. The authors and associated institutions accept no liability for data loss, breaches, or operational failures resulting from the use or misconfiguration of this software. Always ensure compliance with your local healthcare data governance policies.
