@@ -2,7 +2,7 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Fira Code', 'JetBrains Mono', monospace;
 
   /* Base surfaces */
