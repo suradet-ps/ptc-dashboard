@@ -7,7 +7,7 @@ import { STATUS_CONFIG } from '@/data/plan-data';
 import { useDashboardStore } from '@/stores/dashboard';
 
 const props = defineProps<{ action: ActionItem; recColor: string }>();
-const emit = defineEmits<{ (e: 'select', action: ActionItem): void }>();
+const emit = defineEmits<{ (_e: 'select', _action: ActionItem): void }>();
 
 const store = useDashboardStore();
 const isSaving = computed(() => store.saving === props.action.id);
@@ -94,7 +94,7 @@ const statusDotColor: Record<ActionStatus, string> = {
     @click="emit('select', action)"
   >
     <div class="p-4">
-      <!-- ── Top row: ID + title + spinner ────────────── -->
+      <!-- Top row: ID + title + spinner -->
       <div class="flex items-start gap-2.5 mb-3">
         <div
           class="shrink-0 num font-bold text-xs px-2 py-1 rounded-md leading-tight mt-0.5"
@@ -122,7 +122,7 @@ const statusDotColor: Record<ActionStatus, string> = {
         </div>
       </div>
 
-      <!-- ── Status row ────────────────────────────────── -->
+      <!-- Status row -->
       <div class="flex items-center gap-2 mb-3" @click.stop>
         <!-- Status badge (read display) -->
         <div
@@ -158,7 +158,7 @@ const statusDotColor: Record<ActionStatus, string> = {
         </select>
       </div>
 
-      <!-- ── Progress ───────────────────────────────────── -->
+      <!-- Progress -->
       <div class="mb-3" @click.stop>
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-medium" style="color: var(--color-dim)">ความคืบหน้า</span>
@@ -194,7 +194,7 @@ const statusDotColor: Record<ActionStatus, string> = {
         </div>
       </div>
 
-      <!-- ── KPI chips ──────────────────────────────────── -->
+      <!-- KPI chips -->
       <div v-if="action.kpis.length" class="flex flex-wrap gap-1.5 mb-3">
         <span
           v-for="kpi in action.kpis.slice(0, 2)"
@@ -217,7 +217,7 @@ const statusDotColor: Record<ActionStatus, string> = {
         >+{{ action.kpis.length - 2 }}</span>
       </div>
 
-      <!-- ── Blocker alert ──────────────────────────────── -->
+      <!-- Blocker alert -->
       <div
         v-if="action.blockers"
         class="blocker-box flex items-start gap-2 mb-3"
@@ -240,7 +240,7 @@ const statusDotColor: Record<ActionStatus, string> = {
         <span class="text-xs leading-snug">{{ action.blockers }}</span>
       </div>
 
-      <!-- ── Footer ─────────────────────────────────────── -->
+      <!-- Footer -->
       <div
         class="flex items-center justify-between pt-2.5"
         style="border-top: 1px solid var(--color-border)"
