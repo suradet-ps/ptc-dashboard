@@ -26,7 +26,7 @@ function selectAction(action: ActionItem) {
 }
 
 function recColor(no: number): string {
-  return (['#963020', '#2e7028', '#8c6010'] as const)[no - 1] ?? '#5c7020';
+  return (['#dc3545', '#215732', '#b45309'] as const)[no - 1] ?? '#6cc24a';
 }
 
 // Filtered rec list based on active tab
@@ -189,7 +189,7 @@ onMounted(() => store.syncFromSheet());
       <div v-if="!alertsCount" class="card p-14 text-center">
         <div
           class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-          style="background: rgba(46, 112, 40, 0.1)"
+          style="background: rgba(40, 167, 69, 0.1)"
         >
           <svg
             width="28"

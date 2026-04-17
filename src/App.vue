@@ -19,8 +19,8 @@ const isPrintView = computed(() => route.name === 'smart-ptc-meeting-print');
       class="fixed inset-0 pointer-events-none"
       style="
         background-image:
-          linear-gradient(rgba(92, 112, 32, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(92, 112, 32, 0.02) 1px, transparent 1px);
+          linear-gradient(rgba(108, 194, 74, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(108, 194, 74, 0.02) 1px, transparent 1px);
         background-size: 44px 44px;
         z-index: 0;
       "
@@ -32,7 +32,7 @@ const isPrintView = computed(() => route.name === 'smart-ptc-meeting-print');
       style="
         background: radial-gradient(
           ellipse at top right,
-          rgba(156, 176, 64, 0.05) 0%,
+          rgba(108, 194, 74, 0.04) 0%,
           transparent 68%
         );
         z-index: 0;
@@ -45,7 +45,7 @@ const isPrintView = computed(() => route.name === 'smart-ptc-meeting-print');
       style="
         background: radial-gradient(
           ellipse at bottom left,
-          rgba(92, 112, 32, 0.04) 0%,
+          rgba(108, 194, 74, 0.03) 0%,
           transparent 65%
         );
         z-index: 0;
@@ -58,7 +58,7 @@ const isPrintView = computed(() => route.name === 'smart-ptc-meeting-print');
       style="
         background: radial-gradient(
           ellipse at 50% 30%,
-          rgba(188, 172, 120, 0.03) 0%,
+          rgba(108, 194, 74, 0.02) 0%,
           transparent 60%
         );
         z-index: 0;

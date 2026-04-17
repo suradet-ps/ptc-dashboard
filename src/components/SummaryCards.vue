@@ -65,7 +65,7 @@ const kpiCards = computed(() => [
     value: animCompleted,
     raw: summary.value.completed,
     color: 'var(--color-ok)',
-    colorHex: '#2e7028',
+    colorHex: '#28a745',
     icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>`,
   },
   {
@@ -73,7 +73,7 @@ const kpiCards = computed(() => [
     value: animInProgress,
     raw: summary.value.inProgress,
     color: 'var(--color-info)',
-    colorHex: '#3a5a8c',
+    colorHex: '#0d6efd',
     icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653z"/>`,
   },
   {
@@ -81,7 +81,7 @@ const kpiCards = computed(() => [
     value: animDelayed,
     raw: summary.value.delayed,
     color: 'var(--color-warn)',
-    colorHex: '#8c6010',
+    colorHex: '#d97706',
     icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>`,
   },
   {
@@ -89,7 +89,7 @@ const kpiCards = computed(() => [
     value: animBlocked,
     raw: summary.value.blocked,
     color: 'var(--color-danger)',
-    colorHex: '#963020',
+    colorHex: '#dc3545',
     icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>`,
   },
 ]);
@@ -106,7 +106,7 @@ const kpiCards = computed(() => [
           var(--color-header) 0%,
           var(--color-header2) 100%
         );
-        border-color: rgba(155, 180, 48, 0.2);
+        border-color: rgba(108, 194, 74, 0.25);
       "
     >
       <div class="sweep-line" />
@@ -119,9 +119,9 @@ const kpiCards = computed(() => [
             <span
               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold"
               style="
-                background: rgba(92, 112, 32, 0.3);
-                color: #c8e060;
-                border: 1px solid rgba(155, 180, 48, 0.35);
+                background: rgba(255, 255, 255, 0.15);
+                color: #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.3);
               "
             >
               <svg
@@ -138,19 +138,19 @@ const kpiCards = computed(() => [
               </svg>
               HA II-6
             </span>
-            <span class="text-sm" style="color: rgba(200, 230, 100, 0.55)">ปีงบประมาณ 2568</span>
-            <span class="text-sm" style="color: rgba(200, 230, 100, 0.35)">·</span>
-            <span class="text-sm" style="color: rgba(200, 230, 100, 0.55)">รพ.สระโบสถ์</span>
+            <span class="text-sm" style="color: rgba(255, 255, 255, 0.65)">ปีงบประมาณ 2568</span>
+            <span class="text-sm" style="color: rgba(255, 255, 255, 0.35)">·</span>
+            <span class="text-sm" style="color: rgba(255, 255, 255, 0.65)">รพ.สระโบสถ์</span>
           </div>
 
           <!-- Heading -->
           <h1
             class="text-xl font-bold mb-1 leading-snug"
-            style="color: #d4e880"
+            style="color: #ffffff"
           >
             ระบบติดตามแผนพัฒนาคุณภาพยา
           </h1>
-          <p class="text-base mb-5" style="color: rgba(200, 230, 100, 0.5)">
+          <p class="text-base mb-5" style="color: rgba(255, 255, 255, 0.6)">
             Medication Safety · PTC Committee
           </p>
 
@@ -158,18 +158,18 @@ const kpiCards = computed(() => [
           <div class="flex items-end gap-3 mb-4">
             <span
               class="num font-bold leading-none"
-              style="font-size: clamp(52px, 8vw, 72px); color: #c8e060"
+              style="font-size: clamp(52px, 8vw, 72px); color: #ffffff"
             >
               {{ animOverall }}
             </span>
             <div class="mb-2">
               <span
                 class="text-3xl font-bold"
-                style="color: rgba(200, 230, 100, 0.7)"
+                style="color: rgba(255, 255, 255, 0.75)"
               >%</span>
               <p
                 class="text-sm mt-0.5"
-                style="color: rgba(200, 230, 100, 0.45)"
+                style="color: rgba(255, 255, 255, 0.55)"
               >
                 ความคืบหน้า
               </p>
@@ -179,9 +179,9 @@ const kpiCards = computed(() => [
           <!-- Fraction -->
           <p
             class="text-base font-medium mb-5"
-            style="color: rgba(200, 230, 100, 0.55)"
+            style="color: rgba(255, 255, 255, 0.65)"
           >
-            <span class="num font-bold" style="color: #c8e060">{{
+            <span class="num font-bold" style="color: #ffffff">{{
               summary.completed
             }}</span>
             <span> / {{ summary.totalActions }} แผนดำเนินการเสร็จสิ้น</span>
@@ -214,7 +214,7 @@ const kpiCards = computed(() => [
           <div class="flex flex-wrap gap-x-5 gap-y-1.5 mt-3">
             <div
               class="flex items-center gap-1.5 text-sm"
-              style="color: rgba(200, 230, 100, 0.5)"
+              style="color: rgba(255, 255, 255, 0.65)"
             >
               <div
                 class="w-3 h-2.5 rounded-sm"
@@ -224,7 +224,7 @@ const kpiCards = computed(() => [
             </div>
             <div
               class="flex items-center gap-1.5 text-sm"
-              style="color: rgba(200, 230, 100, 0.5)"
+              style="color: rgba(255, 255, 255, 0.65)"
             >
               <div
                 class="w-3 h-2.5 rounded-sm"
@@ -234,7 +234,7 @@ const kpiCards = computed(() => [
             </div>
             <div
               class="flex items-center gap-1.5 text-sm"
-              style="color: rgba(200, 230, 100, 0.5)"
+              style="color: rgba(255, 255, 255, 0.65)"
             >
               <div
                 class="w-3 h-2.5 rounded-sm"
@@ -244,7 +244,7 @@ const kpiCards = computed(() => [
             </div>
             <div
               class="flex items-center gap-1.5 text-sm"
-              style="color: rgba(200, 230, 100, 0.5)"
+              style="color: rgba(255, 255, 255, 0.65)"
             >
               <div
                 class="w-3 h-2.5 rounded-sm"
@@ -279,14 +279,14 @@ const kpiCards = computed(() => [
               cy="60"
               r="50"
               fill="none"
-              stroke="#c8e060"
+              stroke="#88d66e"
               stroke-width="9"
               stroke-linecap="round"
               :stroke-dasharray="heroFill"
               transform="rotate(135, 60, 60)"
               style="
                 transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1);
-                filter: drop-shadow(0 0 6px rgba(200, 224, 96, 0.5));
+                filter: drop-shadow(0 0 6px rgba(136, 214, 110, 0.5));
               "
             />
           </svg>
@@ -296,9 +296,9 @@ const kpiCards = computed(() => [
           >
             <span
               class="num font-bold text-3xl leading-none"
-              style="color: #c8e060"
+              style="color: #ffffff"
             >{{ summary.overallPct }}%</span>
-            <span class="text-xs mt-1" style="color: rgba(200, 230, 100, 0.45)">ภาพรวม</span>
+            <span class="text-xs mt-1" style="color: rgba(255, 255, 255, 0.55)">ภาพรวม</span>
           </div>
         </div>
       </div>

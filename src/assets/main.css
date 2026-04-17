@@ -1,44 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&family=Fira+Code:wght@400;500;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Prompt', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-  /* ── White/Olive Palette ─────────────────────────── */
+  --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: 'Fira Code', 'JetBrains Mono', monospace;
 
   /* Base surfaces */
   --color-void: #ffffff;
-  --color-deep: #fafafa;
-  --color-surface: #f3f4f0;
+  --color-deep: #f6f6f6;
+  --color-surface: #f6f6f6;
   --color-panel: #ffffff;
-  --color-border: #e2e4dc;
-  --color-muted: #737c52;
-  --color-dim: #444c26;
+  --color-border: #e0e0e0;
+  --color-muted: #767676;
+  --color-dim: #555555;
 
-  /* Primary olive signal */
-  --color-signal: #5c7020;
-  --color-signal2: #7c9030;
-  --color-pulse: #9cb040;
+  /* Primary Node.js green */
+  --color-signal: #6cc24a;
+  --color-signal2: #44883e;
+  --color-pulse: #6cc24a;
 
   /* Semantic */
-  --color-ok: #2e7028;
-  --color-warn: #8c6010;
-  --color-danger: #963020;
-  --color-info: #3a5a8c;
+  --color-ok: #28a745;
+  --color-warn: #d97706;
+  --color-danger: #dc3545;
+  --color-info: #0d6efd;
 
   /* Rec accent colors */
-  --color-rec1: #963020;
-  --color-rec2: #2e7028;
-  --color-rec3: #8c6010;
+  --color-rec1: #dc3545;
+  --color-rec2: #215732;
+  --color-rec3: #b45309;
 
-  /* Dark header surface */
-  --color-header: #1e2a10;
-  --color-header2: #28380f;
+  /* Dark header surface (Node.js green dark) */
+  --color-header: #215732;
+  --color-header2: #1a472a;
 
-  /* Text - High contrast */
-  --color-text: #111709;
-  --color-text-sub: #252f14;
+  /* Text */
+  --color-text: #333333;
+  --color-text-sub: #555555;
 }
 
 * {
@@ -60,8 +58,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
-
-/* ── Scrollbar ───────────────────────────────────────── */
+/* ── Scrollbar ──────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -70,14 +67,14 @@ body {
   background: var(--color-deep);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-muted);
+  background: #b0b0b0;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-signal);
+  background: #6cc24a;
 }
 
-/* ── Noise texture overlay ───────────────────────────── */
+/* ── Noise texture overlay ────────────────────────────────────── */
 .noise-bg::before {
   content: '';
   position: fixed;
@@ -87,65 +84,69 @@ body {
   z-index: 0;
 }
 
-/* ── Glow effects ────────────────────────────────────── */
+/* ── Glow effects ──────────────────────────────────────────────── */
 .glow-signal {
-  box-shadow: 0 0 24px rgba(92, 112, 32, 0.2);
+  box-shadow: 0 0 24px rgba(108, 194, 74, 0.2);
 }
 .glow-danger {
-  box-shadow: 0 0 24px rgba(150, 48, 32, 0.2);
+  box-shadow: 0 0 24px rgba(220, 53, 69, 0.2);
 }
 .glow-warn {
-  box-shadow: 0 0 24px rgba(140, 96, 16, 0.2);
+  box-shadow: 0 0 24px rgba(217, 119, 6, 0.2);
 }
 
 .text-glow-signal {
-  text-shadow: 0 0 16px rgba(92, 112, 32, 0.45);
+  text-shadow: 0 0 16px rgba(108, 194, 74, 0.45);
 }
 
-/* ── Card base ───────────────────────────────────────── */
+/* ── Card base ─────────────────────────────────────────────────── */
 .card {
   background: var(--color-panel);
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: 8px;
   position: relative;
   overflow: hidden;
   transition:
     border-color 0.25s,
     box-shadow 0.25s;
   box-shadow:
-    0 1px 6px rgba(50, 60, 20, 0.07),
-    0 4px 16px rgba(50, 60, 20, 0.04);
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .card::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(92, 112, 32, 0.025) 0%, transparent 55%);
+  background: linear-gradient(135deg, rgba(108, 194, 74, 0.02) 0%, transparent 55%);
   pointer-events: none;
 }
 .card:hover {
-  border-color: var(--color-signal);
+  border-color: #6cc24a;
   box-shadow:
-    0 2px 12px rgba(92, 112, 32, 0.12),
-    0 6px 24px rgba(92, 112, 32, 0.06);
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* ── KPI card ────────────────────────────────────────── */
+/* ── KPI card ──────────────────────────────────────────────────── */
 .kpi-card {
   background: var(--color-panel);
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: 8px;
   position: relative;
   overflow: hidden;
   transition:
     border-color 0.25s,
     box-shadow 0.25s,
     transform 0.2s;
-  box-shadow: 0 1px 6px rgba(50, 60, 20, 0.07);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(92, 112, 32, 0.14);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.08);
 }
 .kpi-accent {
   position: absolute;
@@ -153,10 +154,10 @@ body {
   top: 0;
   bottom: 0;
   width: 4px;
-  border-radius: 14px 0 0 14px;
+  border-radius: 8px 0 0 8px;
 }
 
-/* ── Progress bar ────────────────────────────────────── */
+/* ── Progress bar ──────────────────────────────────────────────── */
 .progress-track {
   height: 6px;
   background: var(--color-border);
@@ -189,13 +190,13 @@ body {
   }
 }
 
-/* ── Multi-segment progress bar ─────────────────────── */
+/* ── Multi-segment progress bar ────────────────────────────────────── */
 .progress-segment {
   height: 100%;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Pulse dot ───────────────────────────────────────── */
+/* ── Pulse dot ─────────────────────────────────────────────────── */
 .pulse-dot {
   width: 10px;
   height: 10px;
@@ -223,14 +224,14 @@ body {
   }
 }
 
-/* ── Subtle sweep animation ──────────────────────────── */
+/* ── Subtle sweep animation ────────────────────────────────────────── */
 .sweep-line {
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(92, 112, 32, 0.04) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(108, 194, 74, 0.04) 50%, transparent 100%);
   animation: sweep 5s linear infinite;
   pointer-events: none;
 }
@@ -243,7 +244,7 @@ body {
   }
 }
 
-/* ── Gantt bars ──────────────────────────────────────── */
+/* ── Gantt bars ─────────────────────────────────────────────────── */
 .gantt-bar {
   height: 20px;
   border-radius: 5px;
@@ -258,7 +259,7 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
-/* ── Slide-in panel ──────────────────────────────────── */
+/* ── Slide-in panel ──────────────────────────────────────────────── */
 .modal-slide-enter-active {
   transition: all 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -285,12 +286,12 @@ body {
   opacity: 0;
 }
 
-/* ── Number / mono ───────────────────────────────────── */
+/* ── Number / mono ──────────────────────────────────────────────── */
 .num {
   font-family: var(--font-mono);
 }
 
-/* ── Tooltip ─────────────────────────────────────────── */
+/* ── Tooltip ────────────────────────────────────────────────────── */
 .tooltip {
   position: relative;
 }
@@ -299,13 +300,13 @@ body {
   bottom: calc(100% + 7px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--color-header);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 7px;
+  background: #333333;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   padding: 5px 10px;
   font-size: 12px;
   white-space: nowrap;
-  color: #d0dca0;
+  color: #ffffff;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s;
@@ -315,7 +316,7 @@ body {
   opacity: 1;
 }
 
-/* ── Tab navigation ──────────────────────────────────── */
+/* ── Tab navigation ─────────────────────────────────────────────── */
 .tab-pill {
   padding: 8px 18px;
   border-radius: 999px;
@@ -329,22 +330,22 @@ body {
   color: var(--color-dim);
 }
 .tab-pill.active {
-  background: rgba(92, 112, 32, 0.1);
-  border-color: var(--color-signal);
-  color: var(--color-signal);
+  background: rgba(108, 194, 74, 0.1);
+  border-color: #6cc24a;
+  color: #6cc24a;
   font-weight: 600;
 }
 .tab-pill:not(.active):hover {
   color: var(--color-text);
-  background: rgba(92, 112, 32, 0.06);
-  border-color: var(--color-border);
+  background: rgba(108, 194, 74, 0.06);
+  border-color: #e0e0e0;
 }
 
-/* ── Input / Select ──────────────────────────────────── */
+/* ── Input / Select ─────────────────────────────────────────────── */
 .field {
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  border-radius: 9px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
   padding: 9px 13px;
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -356,28 +357,28 @@ body {
 }
 .field:focus {
   outline: none;
-  border-color: var(--color-signal);
-  box-shadow: 0 0 0 3px rgba(92, 112, 32, 0.12);
+  border-color: #6cc24a;
+  box-shadow: 0 0 0 3px rgba(108, 194, 74, 0.15);
 }
 .field::placeholder {
   color: var(--color-muted);
 }
 select.field {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235e6a38' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236cc24a' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   padding-right: 34px;
 }
 
-/* ── Buttons ─────────────────────────────────────────── */
+/* ── Buttons ───────────────────────────────────────────────────── */
 .btn-primary {
-  background: var(--color-signal);
-  color: #f8f9f0;
+  background: #6cc24a;
+  color: #ffffff;
   font-weight: 600;
   font-size: 15px;
   padding: 10px 22px;
-  border-radius: 9px;
+  border-radius: 4px;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -385,9 +386,9 @@ select.field {
   letter-spacing: 0.01em;
 }
 .btn-primary:hover {
-  background: var(--color-signal2);
+  background: #44883e;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(92, 112, 32, 0.3);
+  box-shadow: 0 4px 14px rgba(108, 194, 74, 0.3);
 }
 .btn-primary:disabled {
   opacity: 0.45;
@@ -398,23 +399,23 @@ select.field {
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-dim);
+  color: #555555;
   font-weight: 500;
   font-size: 15px;
   padding: 10px 18px;
-  border-radius: 9px;
-  border: 1.5px solid var(--color-border);
+  border-radius: 4px;
+  border: 1.5px solid #e0e0e0;
   cursor: pointer;
   transition: all 0.2s;
   font-family: var(--font-sans);
 }
 .btn-ghost:hover {
-  border-color: var(--color-signal);
-  color: var(--color-signal);
-  background: rgba(92, 112, 32, 0.06);
+  border-color: #6cc24a;
+  color: #6cc24a;
+  background: rgba(108, 194, 74, 0.06);
 }
 
-/* ── Status badge ────────────────────────────────────── */
+/* ── Status badge ──────────────────────────────────────────────── */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -426,20 +427,40 @@ select.field {
   border: 1px solid transparent;
 }
 
-/* ── Blocker alert box ───────────────────────────────── */
+/* ── Blocker alert box ───────────────────────────────────────────── */
 .blocker-box {
-  background: rgba(150, 48, 32, 0.07);
-  border: 1px solid rgba(150, 48, 32, 0.22);
+  background: rgba(220, 53, 69, 0.07);
+  border: 1px solid rgba(220, 53, 69, 0.22);
   border-radius: 8px;
   padding: 10px 13px;
   color: var(--color-danger);
   font-size: 14px;
 }
 
-/* ── Info box ────────────────────────────────────────── */
+/* ── Info box ────────────────────────────────────────────────────── */
 .info-box {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+  background: #f6f6f6;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
   padding: 12px 14px;
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-void: #1a1a1a;
+    --color-deep: #1a1a1a;
+    --color-surface: #252525;
+    --color-panel: #252525;
+    --color-border: #404040;
+    --color-muted: #b0b0b0;
+    --color-dim: #cccccc;
+    --color-signal: #88d66e;
+    --color-signal2: #6cc24a;
+    --color-pulse: #88d66e;
+    --color-text: #f0f0f0;
+    --color-text-sub: #cccccc;
+    --color-header: #1a472a;
+    --color-header2: #0d2b17;
+  }
 }

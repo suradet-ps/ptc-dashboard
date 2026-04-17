@@ -38,7 +38,7 @@ function formatSync(d: Date | null) {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[var(--color-border)] shadow-sm">
+  <header class="sticky top-0 z-40 bg-white backdrop-blur-md border-b border-[var(--color-border)] shadow-sm">
     <div class="max-w-screen-2xl mx-auto px-6 h-16 flex items-center gap-6">
       <!-- Brand -->
       <router-link to="/" class="flex flex-col shrink-0 hover:opacity-80 transition-opacity">

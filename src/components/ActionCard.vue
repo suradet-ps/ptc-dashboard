@@ -47,38 +47,38 @@ const statusColors: Record<
   { bg: string; text: string; border: string }
 > = {
   not_started: {
-    bg: 'rgba(168,174,128,0.14)',
-    text: '#6a7040',
-    border: 'rgba(168,174,128,0.32)',
+    bg: 'rgba(224,224,224,0.4)',
+    text: '#767676',
+    border: 'rgba(176,176,176,0.5)',
   },
   in_progress: {
-    bg: 'rgba(58,90,140,0.11)',
-    text: '#3a5a8c',
-    border: 'rgba(58,90,140,0.24)',
+    bg: 'rgba(13,110,253,0.08)',
+    text: '#0d6efd',
+    border: 'rgba(13,110,253,0.22)',
   },
   completed: {
-    bg: 'rgba(46,112,40,0.11)',
-    text: '#2e7028',
-    border: 'rgba(46,112,40,0.24)',
+    bg: 'rgba(40,167,69,0.08)',
+    text: '#28a745',
+    border: 'rgba(40,167,69,0.22)',
   },
   delayed: {
-    bg: 'rgba(140,96,16,0.11)',
-    text: '#8c6010',
-    border: 'rgba(140,96,16,0.24)',
+    bg: 'rgba(217,119,6,0.1)',
+    text: '#d97706',
+    border: 'rgba(217,119,6,0.28)',
   },
   blocked: {
-    bg: 'rgba(150,48,32,0.11)',
-    text: '#963020',
-    border: 'rgba(150,48,32,0.24)',
+    bg: 'rgba(220,53,69,0.08)',
+    text: '#dc3545',
+    border: 'rgba(220,53,69,0.22)',
   },
 };
 
 const statusDotColor: Record<ActionStatus, string> = {
-  not_started: '#a8ae80',
-  in_progress: '#3a5a8c',
-  completed: '#2e7028',
-  delayed: '#8c6010',
-  blocked: '#963020',
+  not_started: '#b0b0b0',
+  in_progress: '#0d6efd',
+  completed: '#28a745',
+  delayed: '#d97706',
+  blocked: '#dc3545',
 };
 </script>
 

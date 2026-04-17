@@ -24,7 +24,7 @@ const monthLineLeft = computed(() => {
 });
 
 function recColor(no: number): string {
-  return (['#963020', '#2e7028', '#8c6010'] as const)[no - 1] ?? '#5c7020';
+  return (['#dc3545', '#215732', '#b45309'] as const)[no - 1] ?? '#6cc24a';
 }
 
 function barLeft(start: number): string {
@@ -54,9 +54,9 @@ function barOpacity(status: string): number {
       <span
         class="num text-sm font-semibold px-3 py-1.5 rounded-full"
         style="
-          background: rgba(92, 112, 32, 0.1);
+          background: rgba(108, 194, 74, 0.1);
           color: var(--color-signal);
-          border: 1px solid rgba(92, 112, 32, 0.22);
+          border: 1px solid rgba(108, 194, 74, 0.22);
         "
       >
         เดือน {{ FISCAL_MONTHS[currentFiscalMonth - 1] }}
