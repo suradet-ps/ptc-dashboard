@@ -11,7 +11,7 @@ Originally developed for Sabot Hospital
 [![Google Apps Script](https://img.shields.io/badge/Google_Apps_Script-API-4285F4?logo=google)](https://developers.google.com/apps-script)
 [![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?logo=vercel)](https://vercel.com/)
 
-[Report Bug](https://github.com/pharmacist-sabot/ptc-dashboard/issues) · [Request Feature](https://github.com/pharmacist-sabot/ptc-dashboard/issues)
+[Report Bug](https://github.com/suradet-ps/ptc-dashboard/issues) · [Request Feature](https://github.com/suradet-ps/ptc-dashboard/issues)
 
 ---
 
@@ -76,7 +76,7 @@ graph LR
 1. Clone the repository and install dependencies:
 
    ```bash
-   git clone https://github.com/pharmacist-sabot/ptc-dashboard.git
+   git clone https://github.com/suradet-ps/ptc-dashboard.git
    cd ptc-dashboard
    npm install
    ```
