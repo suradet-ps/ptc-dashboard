@@ -4,6 +4,14 @@ export type RecommendationNo = 1 | 2 | 3;
 
 export type ActionStatus = 'not_started' | 'in_progress' | 'completed' | 'delayed' | 'blocked';
 
+export const ACTION_STATUSES: readonly ActionStatus[] = [
+  'not_started',
+  'in_progress',
+  'completed',
+  'delayed',
+  'blocked',
+] as const;
+
 export type StatusConfig = {
   label: string;
   color: string;
@@ -14,6 +22,50 @@ export type StatusConfig = {
 };
 
 export type StatusConfigMap = Record<ActionStatus, StatusConfig>;
+
+export type StatusStyle = {
+  bg: string;
+  text: string;
+  border: string;
+};
+
+// Single source of truth for inline-style status colors.
+// Kept in sync with the seed data in `ptc_status_catalog`.
+export const STATUS_STYLES: Record<ActionStatus, StatusStyle> = {
+  not_started: {
+    bg: 'rgba(168,174,128,0.14)',
+    text: '#6a7040',
+    border: 'rgba(168,174,128,0.32)',
+  },
+  in_progress: {
+    bg: 'rgba(58,90,140,0.12)',
+    text: '#3a5a8c',
+    border: 'rgba(58,90,140,0.26)',
+  },
+  completed: {
+    bg: 'rgba(46,112,40,0.12)',
+    text: '#2e7028',
+    border: 'rgba(46,112,40,0.26)',
+  },
+  delayed: {
+    bg: 'rgba(140,96,16,0.12)',
+    text: '#8c6010',
+    border: 'rgba(140,96,16,0.26)',
+  },
+  blocked: {
+    bg: 'rgba(150,48,32,0.12)',
+    text: '#963020',
+    border: 'rgba(150,48,32,0.26)',
+  },
+};
+
+export const STATUS_DOT_COLORS: Record<ActionStatus, string> = {
+  not_started: '#b0b0b0',
+  in_progress: '#0d6efd',
+  completed: '#28a745',
+  delayed: '#d97706',
+  blocked: '#dc3545',
+};
 
 export type ActionItem = {
   id: string;
@@ -45,6 +97,16 @@ export type Recommendation = {
   shortTitle: string;
   color: string; // tailwind color key
   actions: ActionItem[];
+};
+
+export type RecommendationGroup = {
+  no: RecommendationNo;
+  title: string;
+  shortTitle: string;
+  color: string;
+  hexColor: string;
+  actions: ActionItem[];
+  pct: number;
 };
 
 export type DashboardSummary = {

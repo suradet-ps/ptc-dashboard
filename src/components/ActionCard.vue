@@ -3,23 +3,23 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
-import type { ActionItem, ActionStatus } from '@/types';
+import {
+  ACTION_STATUSES,
+  type ActionItem,
+  type ActionStatus,
+  STATUS_DOT_COLORS,
+  STATUS_STYLES,
+} from '@/types';
 
 const props = defineProps<{ action: ActionItem; recColor: string }>();
-const emit = defineEmits<(_e: 'select', _action: ActionItem) => void>();
+const emit = defineEmits<{ select: [action: ActionItem] }>();
 
 const store = useDashboardStore();
 const configStore = useConfigStore();
 const { statusCatalog } = storeToRefs(configStore);
 const isSaving = computed(() => store.saving === props.action.id);
 
-const statusOptions: ActionStatus[] = [
-  'not_started',
-  'in_progress',
-  'completed',
-  'delayed',
-  'blocked',
-];
+const statusOptions = ACTION_STATUSES;
 
 function cfg(s: ActionStatus) {
   return statusCatalog.value[s];
@@ -40,41 +40,8 @@ const timeAgo = computed(() => {
   return 'เมื่อกี้';
 });
 
-const statusColors: Record<ActionStatus, { bg: string; text: string; border: string }> = {
-  not_started: {
-    bg: 'rgba(224,224,224,0.4)',
-    text: '#767676',
-    border: 'rgba(176,176,176,0.5)',
-  },
-  in_progress: {
-    bg: 'rgba(13,110,253,0.08)',
-    text: '#0d6efd',
-    border: 'rgba(13,110,253,0.22)',
-  },
-  completed: {
-    bg: 'rgba(40,167,69,0.08)',
-    text: '#28a745',
-    border: 'rgba(40,167,69,0.22)',
-  },
-  delayed: {
-    bg: 'rgba(217,119,6,0.1)',
-    text: '#d97706',
-    border: 'rgba(217,119,6,0.28)',
-  },
-  blocked: {
-    bg: 'rgba(220,53,69,0.08)',
-    text: '#dc3545',
-    border: 'rgba(220,53,69,0.22)',
-  },
-};
-
-const statusDotColor: Record<ActionStatus, string> = {
-  not_started: '#b0b0b0',
-  in_progress: '#0d6efd',
-  completed: '#28a745',
-  delayed: '#d97706',
-  blocked: '#dc3545',
-};
+const statusColors = STATUS_STYLES;
+const statusDotColor = STATUS_DOT_COLORS;
 </script>
 
 <template>

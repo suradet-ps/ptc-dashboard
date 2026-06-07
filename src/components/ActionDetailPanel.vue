@@ -3,10 +3,10 @@ import { storeToRefs } from 'pinia';
 import { ref, watch } from 'vue';
 import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
-import type { ActionItem, ActionStatus } from '@/types';
+import { ACTION_STATUSES, type ActionItem, type ActionStatus, STATUS_STYLES } from '@/types';
 
 const props = defineProps<{ action: ActionItem | null; recColor: string }>();
-const emit = defineEmits<(_e: 'close') => void>();
+const emit = defineEmits<{ close: [] }>();
 const store = useDashboardStore();
 const configStore = useConfigStore();
 const { statusCatalog } = storeToRefs(configStore);
@@ -32,55 +32,26 @@ watch(
 
 async function save() {
   if (!props.action) return;
-  await store.saveAction(props.action.id, {
-    status: localStatus.value,
-    progressPct: localPct.value,
-    actualValue: localActual.value,
-    notes: localNotes.value,
-    blockers: localBlockers.value,
-  });
-  emit('close');
+  try {
+    await store.saveAction(props.action.id, {
+      status: localStatus.value,
+      progressPct: localPct.value,
+      actualValue: localActual.value,
+      notes: localNotes.value,
+      blockers: localBlockers.value,
+    });
+    emit('close');
+  } catch {
+    // store.saveAction already surfaces the error on the store
+  }
 }
 
 function cfg(s: ActionStatus) {
   return statusCatalog.value[s];
 }
 
-const statusOptions: ActionStatus[] = [
-  'not_started',
-  'in_progress',
-  'completed',
-  'delayed',
-  'blocked',
-];
-
-const statusColors: Record<ActionStatus, { bg: string; text: string; border: string }> = {
-  not_started: {
-    bg: 'rgba(168,174,128,0.14)',
-    text: '#6a7040',
-    border: 'rgba(168,174,128,0.32)',
-  },
-  in_progress: {
-    bg: 'rgba(58,90,140,0.12)',
-    text: '#3a5a8c',
-    border: 'rgba(58,90,140,0.26)',
-  },
-  completed: {
-    bg: 'rgba(46,112,40,0.12)',
-    text: '#2e7028',
-    border: 'rgba(46,112,40,0.26)',
-  },
-  delayed: {
-    bg: 'rgba(140,96,16,0.12)',
-    text: '#8c6010',
-    border: 'rgba(140,96,16,0.26)',
-  },
-  blocked: {
-    bg: 'rgba(150,48,32,0.12)',
-    text: '#963020',
-    border: 'rgba(150,48,32,0.26)',
-  },
-};
+const statusOptions = ACTION_STATUSES;
+const statusColors = STATUS_STYLES;
 </script>
 
 <template>

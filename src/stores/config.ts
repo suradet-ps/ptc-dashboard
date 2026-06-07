@@ -9,7 +9,7 @@ import {
   type RecommendationRow,
   type StatusCatalogRow,
 } from '@/services/supabase-config';
-import type { ActionStatus, StatusConfigMap } from '@/types';
+import type { ActionStatus, RecommendationNo, StatusConfigMap } from '@/types';
 
 export const useConfigStore = defineStore('config', () => {
   const recommendations = ref<RecommendationRow[]>([]);
@@ -19,6 +19,8 @@ export const useConfigStore = defineStore('config', () => {
   const loading = ref(false);
   const loaded = ref(false);
   const error = ref<string | null>(null);
+  // Distinguish a fatal first-load failure from later transient errors.
+  const loadError = ref<string | null>(null);
 
   const statusCatalog = computed<StatusConfigMap>(() => {
     const map = {} as StatusConfigMap;
@@ -37,13 +39,14 @@ export const useConfigStore = defineStore('config', () => {
 
   const fiscalMonths = computed<string[]>(() => fiscalMonthRows.value.map((m) => m.short_label));
 
-  const recColor = (no: number): string =>
+  const recColor = (no: RecommendationNo): string =>
     recommendations.value.find((r) => r.no === no)?.hex_color ?? '#6cc24a';
 
   async function load(force = false): Promise<void> {
     if (loaded.value && !force) return;
     loading.value = true;
     error.value = null;
+    loadError.value = null;
     try {
       const [recs, statuses, months] = await Promise.all([
         fetchRecommendations(),
@@ -55,7 +58,9 @@ export const useConfigStore = defineStore('config', () => {
       fiscalMonthRows.value = months;
       loaded.value = true;
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to load config';
+      const msg = e instanceof Error ? e.message : 'Failed to load config';
+      error.value = msg;
+      loadError.value = msg;
     } finally {
       loading.value = false;
     }
@@ -70,6 +75,7 @@ export const useConfigStore = defineStore('config', () => {
     loading,
     loaded,
     error,
+    loadError,
     recColor,
     load,
   };

@@ -1,20 +1,29 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+import { toMessage, useToasts } from '@/composables/use-toast';
 import { useSmartPtcStore } from '@/stores/useSmartPtcStore';
 
 const store = useSmartPtcStore();
 const route = useRoute();
 const router = useRouter();
 const { meetings, agendas } = storeToRefs(store);
+const { push: pushToast } = useToasts();
 
-const meetingId = route.params.id as string;
+const meetingId = Array.isArray(route.params.id)
+  ? (route.params.id[0] ?? '')
+  : (route.params.id ?? '');
+const confirming = ref(false);
 
 onMounted(async () => {
   if (meetings.value.length === 0) {
-    await store.loadData();
+    try {
+      await store.loadData();
+    } catch (e) {
+      pushToast({ type: 'error', message: toMessage(e) });
+    }
   }
 });
 
@@ -23,26 +32,29 @@ const meetingAgendas = computed(() => store.getAgendasForMeeting(meetingId));
 
 async function saveAgendaResolution(agendaId: string, resolution: string) {
   const agenda = agendas.value.find((a) => a.id === agendaId);
-  if (agenda) {
-    const updated = { ...agenda, resolution };
-    try {
-      await store.saveAgenda(updated);
-      // Show mini toast or just let it be since it's saved.
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Unknown error';
-      alert(`Fail to save: ${message}`);
-    }
+  if (!agenda) return;
+  const updated = { ...agenda, resolution };
+  try {
+    await store.saveAgenda(updated);
+    pushToast({ type: 'success', message: 'บันทึกมติเรียบร้อย' });
+  } catch (e) {
+    pushToast({ type: 'error', message: `บันทึกไม่สำเร็จ: ${toMessage(e)}` });
   }
 }
 
 async function markAsCompleted() {
-  if (meeting.value) {
-    // eslint-disable-next-line no-alert
-    if (confirm('ยืนยันจบการประชุมนี้หรือไม่? (สถานะจะเป็น Completed)')) {
-      const updated = { ...meeting.value, status: 'completed' as const };
-      await store.saveMeeting(updated);
-      router.push('/smart-ptc');
-    }
+  if (!meeting.value) return;
+  confirming.value = true;
+  const ok = window.confirm('ยืนยันจบการประชุมนี้หรือไม่? (สถานะจะเป็น Completed)');
+  confirming.value = false;
+  if (!ok) return;
+  const updated = { ...meeting.value, status: 'completed' as const };
+  try {
+    await store.saveMeeting(updated);
+    pushToast({ type: 'success', message: 'จบการประชุมเรียบร้อย' });
+    router.push('/smart-ptc');
+  } catch (e) {
+    pushToast({ type: 'error', message: `บันทึกไม่สำเร็จ: ${toMessage(e)}` });
   }
 }
 

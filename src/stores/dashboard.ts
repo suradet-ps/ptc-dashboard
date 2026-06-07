@@ -10,7 +10,7 @@ import {
   updateActionProgress,
 } from '@/services/supabase-actions';
 import { useConfigStore } from '@/stores/config';
-import type { ActionItem, DashboardSummary, RecommendationNo } from '@/types';
+import type { ActionItem, DashboardSummary, RecommendationGroup, RecommendationNo } from '@/types';
 
 function toErrorMessage(e: unknown): string {
   return e instanceof Error ? e.message : 'Unknown error';
@@ -73,14 +73,14 @@ export const useDashboardStore = defineStore('dashboard', () => {
     };
   });
 
-  const byRecommendation = computed(() =>
+  const byRecommendation = computed<RecommendationGroup[]>(() =>
     configStore.recommendations.map((rec) => {
       const recActions = actions.value.filter((a) => a.recNo === rec.no);
       const pct =
         recActions.length === 0
           ? 0
           : Math.round(recActions.reduce((s, a) => s + a.progressPct, 0) / recActions.length);
-      return {
+      const group: RecommendationGroup = {
         no: rec.no as RecommendationNo,
         title: rec.title,
         shortTitle: rec.short_title,
@@ -89,6 +89,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         actions: recActions,
         pct,
       };
+      return group;
     }),
   );
 
