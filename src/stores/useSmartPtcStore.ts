@@ -1,27 +1,21 @@
-/* eslint-disable unicorn/filename-case */
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import {
+  deleteAgenda as dbDeleteAgenda,
+  deleteMeeting as dbDeleteMeeting,
+  fetchAgendas,
+  fetchMeetings,
+  upsertAgenda,
+  upsertMeeting,
+  type Agenda,
+  type Meeting,
+} from '@/services/supabase-smartptc';
 
-import { fetchTable, updateTableRow } from '@/services/gas-api';
+function toErrorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : 'Unknown error';
+}
 
-export type Meeting = {
-  id: string;
-  date: string;
-  title: string;
-  status: 'scheduled' | 'active' | 'completed';
-  reportUrl: string;
-  lastUpdated?: string;
-};
-
-export type Agenda = {
-  id: string;
-  meetingId: string;
-  title: string;
-  proposer: string;
-  description: string;
-  resolution: string;
-  lastUpdated?: string;
-};
+export type { Agenda, Meeting };
 
 export const useSmartPtcStore = defineStore('smartPtc', () => {
   const meetings = ref<Meeting[]>([]);
@@ -29,59 +23,80 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
   const loading = ref(false);
   const error = ref('');
 
-  async function loadData() {
+  async function loadData(): Promise<void> {
     loading.value = true;
     error.value = '';
     try {
-      const [m, a] = await Promise.all([fetchTable('Meetings'), fetchTable('Agendas')]);
-      meetings.value = (m || []) as Meeting[];
-      agendas.value = (a || []) as Agenda[];
-    } catch (err: any) {
-      error.value = err.message || 'Failed to load Smart PTC data';
-      console.error(err);
+      const [m, a] = await Promise.all([fetchMeetings(), fetchAgendas()]);
+      meetings.value = m;
+      agendas.value = a;
+    } catch (e) {
+      error.value = toErrorMessage(e);
     } finally {
       loading.value = false;
     }
   }
 
-  async function saveMeeting(meeting: Meeting) {
+  function upsertLocal<T extends { id: string }>(list: T[], item: T): void {
+    const index = list.findIndex(x => x.id === item.id);
+    if (index > -1) {
+      list[index] = item;
+    } else {
+      list.push(item);
+    }
+  }
+
+  async function saveMeeting(meeting: Meeting): Promise<Meeting> {
     loading.value = true;
     try {
-      await updateTableRow('Meetings', meeting);
-      const index = meetings.value.findIndex((m) => m.id === meeting.id);
-      if (index > -1) {
-        meetings.value[index] = meeting;
-      } else {
-        meetings.value.push(meeting);
-      }
-    } catch (err: any) {
-      error.value = err.message;
-      throw err;
+      const saved = await upsertMeeting(meeting);
+      upsertLocal(meetings.value, saved);
+      return saved;
+    } catch (e) {
+      error.value = toErrorMessage(e);
+      throw e;
     } finally {
       loading.value = false;
     }
   }
 
-  async function saveAgenda(agenda: Agenda) {
+  async function saveAgenda(agenda: Agenda): Promise<Agenda> {
     loading.value = true;
     try {
-      await updateTableRow('Agendas', agenda);
-      const index = agendas.value.findIndex((a) => a.id === agenda.id);
-      if (index > -1) {
-        agendas.value[index] = agenda;
-      } else {
-        agendas.value.push(agenda);
-      }
-    } catch (err: any) {
-      error.value = err.message;
-      throw err;
+      const saved = await upsertAgenda(agenda);
+      upsertLocal(agendas.value, saved);
+      return saved;
+    } catch (e) {
+      error.value = toErrorMessage(e);
+      throw e;
     } finally {
       loading.value = false;
     }
   }
 
-  function getAgendasForMeeting(meetingId: string) {
-    return agendas.value.filter((a) => a.meetingId === meetingId);
+  async function removeMeeting(id: string): Promise<void> {
+    try {
+      await dbDeleteMeeting(id);
+      meetings.value = meetings.value.filter(m => m.id !== id);
+      agendas.value = agendas.value.filter(a => a.meetingId !== id);
+    } catch (e) {
+      error.value = toErrorMessage(e);
+      throw e;
+    }
+  }
+
+  async function removeAgenda(id: string): Promise<void> {
+    try {
+      await dbDeleteAgenda(id);
+      agendas.value = agendas.value.filter(a => a.id !== id);
+    } catch (e) {
+      error.value = toErrorMessage(e);
+      throw e;
+    }
+  }
+
+  function getAgendasForMeeting(meetingId: string): Agenda[] {
+    return agendas.value.filter(a => a.meetingId === meetingId);
   }
 
   return {
@@ -92,6 +107,8 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
     loadData,
     saveMeeting,
     saveAgenda,
+    removeMeeting,
+    removeAgenda,
     getAgendasForMeeting,
   };
 });
