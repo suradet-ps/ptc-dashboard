@@ -4,6 +4,17 @@ export type RecommendationNo = 1 | 2 | 3;
 
 export type ActionStatus = 'not_started' | 'in_progress' | 'completed' | 'delayed' | 'blocked';
 
+export type StatusConfig = {
+  label: string;
+  color: string;
+  bg: string;
+  dot: string;
+  border: string;
+  hex: string;
+};
+
+export type StatusConfigMap = Record<ActionStatus, StatusConfig>;
+
 export type ActionItem = {
   id: string;
   recNo: RecommendationNo;

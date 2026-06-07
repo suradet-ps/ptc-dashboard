@@ -2,10 +2,11 @@
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
-import { FISCAL_MONTHS, STATUS_CONFIG } from '@/data/plan-data';
+import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
 
 const { byRecommendation } = storeToRefs(useDashboardStore());
+const { fiscalMonths, statusCatalog, recColor } = storeToRefs(useConfigStore());
 
 // Current fiscal month (Oct=1 … Sep=12)
 const currentFiscalMonth = computed(() => {
@@ -22,10 +23,6 @@ const monthLineLeft = computed(() => {
   const px = ((1 - p) * 200).toFixed(1);
   return `calc(${pct}% + ${px}px)`;
 });
-
-function recColor(no: number): string {
-  return (['#dc3545', '#215732', '#b45309'] as const)[no - 1] ?? '#6cc24a';
-}
 
 function barLeft(start: number): string {
   return `${((start - 1) / 12) * 100}%`;
@@ -56,7 +53,7 @@ function barOpacity(status: string): number {
           border: 1px solid rgba(108, 194, 74, 0.22);
         "
       >
-        เดือน {{ FISCAL_MONTHS[currentFiscalMonth - 1] }}
+        เดือน {{ fiscalMonths[currentFiscalMonth - 1] }}
       </span>
     </div>
 
@@ -65,7 +62,7 @@ function barOpacity(status: string): number {
       <div />
       <div class="flex">
         <div
-          v-for="(m, i) in FISCAL_MONTHS"
+          v-for="(m, i) in fiscalMonths"
           :key="i"
           class="flex-1 text-center pb-2"
           :style="`
@@ -221,7 +218,7 @@ function barOpacity(status: string): number {
       style="border-top: 1px solid var(--color-border)"
     >
       <div
-        v-for="(sc, key) in STATUS_CONFIG"
+        v-for="(sc, key) in statusCatalog"
         :key="key"
         class="flex items-center gap-2"
       >

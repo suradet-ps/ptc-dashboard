@@ -5,11 +5,14 @@ import ActionCard from '@/components/ActionCard.vue';
 import ActionDetailPanel from '@/components/ActionDetailPanel.vue';
 import GanttChart from '@/components/GanttChart.vue';
 import SummaryCards from '@/components/SummaryCards.vue';
+import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
 import type { ActionItem } from '@/types';
 
 const store = useDashboardStore();
+const configStore = useConfigStore();
 const { byRecommendation, blockedActions, delayedActions } = storeToRefs(store);
+const { recColor } = configStore;
 
 // Tab navigation
 const activeTab = ref<'all' | 'rec1' | 'rec2' | 'rec3' | 'alerts'>('all');
@@ -21,10 +24,6 @@ const selectedRecColor = ref('#5c7020');
 function selectAction(action: ActionItem) {
   selectedRecColor.value = recColor(action.recNo);
   selectedAction.value = action;
-}
-
-function recColor(no: number): string {
-  return (['#dc3545', '#215732', '#b45309'] as const)[no - 1] ?? '#6cc24a';
 }
 
 // Filtered rec list based on active tab

@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import { STATUS_CONFIG } from '@/data/plan-data';
+import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
 import type { ActionItem, ActionStatus } from '@/types';
 
@@ -8,6 +9,8 @@ const props = defineProps<{ action: ActionItem; recColor: string }>();
 const emit = defineEmits<(_e: 'select', _action: ActionItem) => void>();
 
 const store = useDashboardStore();
+const configStore = useConfigStore();
+const { statusCatalog } = storeToRefs(configStore);
 const isSaving = computed(() => store.saving === props.action.id);
 
 const statusOptions: ActionStatus[] = [
@@ -19,7 +22,7 @@ const statusOptions: ActionStatus[] = [
 ];
 
 function cfg(s: ActionStatus) {
-  return STATUS_CONFIG[s];
+  return statusCatalog.value[s];
 }
 
 function onStatusChange(e: Event) {

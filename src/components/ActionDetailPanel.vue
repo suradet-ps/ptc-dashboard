@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { ref, watch } from 'vue';
-import { STATUS_CONFIG } from '@/data/plan-data';
+import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
 import type { ActionItem, ActionStatus } from '@/types';
 
 const props = defineProps<{ action: ActionItem | null; recColor: string }>();
 const emit = defineEmits<(_e: 'close') => void>();
 const store = useDashboardStore();
+const configStore = useConfigStore();
+const { statusCatalog } = storeToRefs(configStore);
 
 const localStatus = ref<ActionStatus>('not_started');
 const localPct = ref(0);
@@ -40,7 +43,7 @@ async function save() {
 }
 
 function cfg(s: ActionStatus) {
-  return STATUS_CONFIG[s];
+  return statusCatalog.value[s];
 }
 
 const statusOptions: ActionStatus[] = [
