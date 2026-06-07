@@ -1,6 +1,7 @@
 // src/services/supabase-actions.ts
-import { supabase } from './supabase';
+
 import type { ActionItem, ActionStatus, RecommendationNo, UpdatePayload } from '@/types';
+import { supabase } from './supabase';
 
 type ActionRow = {
   id: string;
@@ -66,7 +67,7 @@ export type ActionPatch = Pick<
   'status' | 'progressPct' | 'actualValue' | 'notes' | 'blockers'
 >;
 
-function toDbPatch(patch: ActionPatch, updatedBy: string) {
+function toDbPatch(patch: Partial<ActionPatch>, updatedBy: string) {
   return {
     status: patch.status,
     progress_pct: patch.progressPct,
@@ -80,7 +81,7 @@ function toDbPatch(patch: ActionPatch, updatedBy: string) {
 
 export async function updateActionProgress(
   actionId: string,
-  patch: ActionPatch,
+  patch: Partial<ActionPatch>,
   updatedBy: string,
 ): Promise<void> {
   const { error } = await supabase
@@ -91,12 +92,10 @@ export async function updateActionProgress(
   if (error) throw new Error(error.message);
 }
 
-export async function bulkUpdateActions(
-  payloads: UpdatePayload[],
-): Promise<void> {
+export async function bulkUpdateActions(payloads: UpdatePayload[]): Promise<void> {
   if (payloads.length === 0) return;
 
-  const rows = payloads.map(p => ({
+  const rows = payloads.map((p) => ({
     action_id: p.id,
     ...toDbPatch(
       {

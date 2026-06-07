@@ -1,13 +1,14 @@
 // src/stores/dashboard.ts
+
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import { supabase } from '@/services/supabase';
 import {
+  type ActionPatch,
   fetchAllActions,
   updateActionProgress,
-  type ActionPatch,
 } from '@/services/supabase-actions';
-import { supabase } from '@/services/supabase';
 import { useConfigStore } from '@/stores/config';
 import type { ActionItem, DashboardSummary } from '@/types';
 
@@ -29,15 +30,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const summary = computed<DashboardSummary>(() => {
     const all = actions.value;
-    const completed = all.filter(a => a.status === 'completed').length;
-    const inProgress = all.filter(a => a.status === 'in_progress').length;
-    const delayed = all.filter(a => a.status === 'delayed').length;
-    const blocked = all.filter(a => a.status === 'blocked').length;
-    const notStarted = all.filter(a => a.status === 'not_started').length;
-    const overallPct
-      = all.length === 0
-        ? 0
-        : Math.round(all.reduce((s, a) => s + a.progressPct, 0) / all.length);
+    const completed = all.filter((a) => a.status === 'completed').length;
+    const inProgress = all.filter((a) => a.status === 'in_progress').length;
+    const delayed = all.filter((a) => a.status === 'delayed').length;
+    const blocked = all.filter((a) => a.status === 'blocked').length;
+    const notStarted = all.filter((a) => a.status === 'not_started').length;
+    const overallPct =
+      all.length === 0 ? 0 : Math.round(all.reduce((s, a) => s + a.progressPct, 0) / all.length);
     return {
       totalActions: all.length,
       completed,
@@ -50,14 +49,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
   });
 
   const byRecommendation = computed(() =>
-    configStore.recommendations.map(rec => {
-      const recActions = actions.value.filter(a => a.recNo === rec.no);
-      const pct
-        = recActions.length === 0
+    configStore.recommendations.map((rec) => {
+      const recActions = actions.value.filter((a) => a.recNo === rec.no);
+      const pct =
+        recActions.length === 0
           ? 0
-          : Math.round(
-              recActions.reduce((s, a) => s + a.progressPct, 0) / recActions.length,
-            );
+          : Math.round(recActions.reduce((s, a) => s + a.progressPct, 0) / recActions.length);
       return {
         no: rec.no,
         title: rec.title,
@@ -70,12 +67,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }),
   );
 
-  const blockedActions = computed(() =>
-    actions.value.filter(a => a.status === 'blocked'),
-  );
-  const delayedActions = computed(() =>
-    actions.value.filter(a => a.status === 'delayed'),
-  );
+  const blockedActions = computed(() => actions.value.filter((a) => a.status === 'blocked'));
+  const delayedActions = computed(() => actions.value.filter((a) => a.status === 'delayed'));
 
   async function refetchActions(): Promise<void> {
     actions.value = await fetchAllActions();
@@ -118,11 +111,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   }
 
-  async function saveAction(
-    id: string,
-    patch: ActionPatch,
-  ): Promise<void> {
-    const action = actions.value.find(a => a.id === id);
+  async function saveAction(id: string, patch: Partial<ActionPatch>): Promise<void> {
+    const action = actions.value.find((a) => a.id === id);
     if (!action) return;
 
     const previous = { ...action };

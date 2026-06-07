@@ -1,14 +1,14 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import {
+  type Agenda,
   deleteAgenda as dbDeleteAgenda,
   deleteMeeting as dbDeleteMeeting,
   fetchAgendas,
   fetchMeetings,
+  type Meeting,
   upsertAgenda,
   upsertMeeting,
-  type Agenda,
-  type Meeting,
 } from '@/services/supabase-smartptc';
 
 function toErrorMessage(e: unknown): string {
@@ -38,7 +38,7 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
   }
 
   function upsertLocal<T extends { id: string }>(list: T[], item: T): void {
-    const index = list.findIndex(x => x.id === item.id);
+    const index = list.findIndex((x) => x.id === item.id);
     if (index > -1) {
       list[index] = item;
     } else {
@@ -77,8 +77,8 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
   async function removeMeeting(id: string): Promise<void> {
     try {
       await dbDeleteMeeting(id);
-      meetings.value = meetings.value.filter(m => m.id !== id);
-      agendas.value = agendas.value.filter(a => a.meetingId !== id);
+      meetings.value = meetings.value.filter((m) => m.id !== id);
+      agendas.value = agendas.value.filter((a) => a.meetingId !== id);
     } catch (e) {
       error.value = toErrorMessage(e);
       throw e;
@@ -88,7 +88,7 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
   async function removeAgenda(id: string): Promise<void> {
     try {
       await dbDeleteAgenda(id);
-      agendas.value = agendas.value.filter(a => a.id !== id);
+      agendas.value = agendas.value.filter((a) => a.id !== id);
     } catch (e) {
       error.value = toErrorMessage(e);
       throw e;
@@ -96,7 +96,7 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
   }
 
   function getAgendasForMeeting(meetingId: string): Agenda[] {
-    return agendas.value.filter(a => a.meetingId === meetingId);
+    return agendas.value.filter((a) => a.meetingId === meetingId);
   }
 
   return {

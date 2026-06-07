@@ -39,7 +39,7 @@ function setRecTab(no: number) {
   activeTab.value = `rec${no}` as 'rec1' | 'rec2' | 'rec3';
 }
 
-onMounted(() => store.syncFromSheet());
+onMounted(() => store.syncFromServer());
 </script>
 
 <template>

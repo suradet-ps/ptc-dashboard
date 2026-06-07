@@ -6,7 +6,9 @@ import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
 
 const { byRecommendation } = storeToRefs(useDashboardStore());
-const { fiscalMonths, statusCatalog, recColor } = storeToRefs(useConfigStore());
+const configStore = useConfigStore();
+const { fiscalMonths, statusCatalog } = storeToRefs(configStore);
+const recColor = configStore.recColor;
 
 // Current fiscal month (Oct=1 … Sep=12)
 const currentFiscalMonth = computed(() => {

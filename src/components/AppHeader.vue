@@ -89,7 +89,7 @@ function formatSync(d: Date | null) {
             ? 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-dim)] cursor-wait'
             : 'bg-white border-[var(--color-border)] text-[var(--color-text-sub)] hover:bg-[var(--color-void)] hover:border-[var(--color-dim)]'"
           :disabled="loading"
-          @click="store.syncFromSheet()"
+          @click="store.syncFromServer()"
         >
           <svg
             class="w-3.5 h-3.5"

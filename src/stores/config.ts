@@ -2,10 +2,10 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import {
+  type FiscalMonthRow,
   fetchFiscalMonths,
   fetchRecommendations,
   fetchStatusCatalog,
-  type FiscalMonthRow,
   type RecommendationRow,
   type StatusCatalogRow,
 } from '@/services/supabase-config';
@@ -35,12 +35,10 @@ export const useConfigStore = defineStore('config', () => {
     return map;
   });
 
-  const fiscalMonths = computed<string[]>(() =>
-    fiscalMonthRows.value.map(m => m.short_label),
-  );
+  const fiscalMonths = computed<string[]>(() => fiscalMonthRows.value.map((m) => m.short_label));
 
   const recColor = (no: number): string =>
-    recommendations.value.find(r => r.no === no)?.hex_color ?? '#6cc24a';
+    recommendations.value.find((r) => r.no === no)?.hex_color ?? '#6cc24a';
 
   async function load(force = false): Promise<void> {
     if (loaded.value && !force) return;

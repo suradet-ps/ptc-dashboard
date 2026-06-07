@@ -3,8 +3,8 @@ import { createApp } from 'vue';
 
 import App from './App.vue';
 import './assets/main.css';
-import { useConfigStore } from './stores/config';
 import router from './router';
+import { useConfigStore } from './stores/config';
 
 async function bootstrap() {
   const app = createApp(App);

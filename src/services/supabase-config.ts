@@ -1,6 +1,7 @@
 // src/services/supabase-config.ts
-import { supabase } from './supabase';
+
 import type { ActionStatus } from '@/types';
+import { supabase } from './supabase';
 
 export type RecommendationRow = {
   no: number;
