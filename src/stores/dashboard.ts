@@ -1,28 +1,39 @@
 // src/stores/dashboard.ts
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { PLAN_DATA } from '@/data/plan-data';
-import { fetchProgress, updateAction } from '@/services/gas-api';
-import type { ActionItem, ActionStatus, DashboardSummary, UpdatePayload } from '@/types';
+import {
+  fetchAllActions,
+  updateActionProgress,
+  type ActionPatch,
+} from '@/services/supabase-actions';
+import { useConfigStore } from '@/stores/config';
+import type { ActionItem, DashboardSummary } from '@/types';
+
+function toErrorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : 'Unknown error';
+}
 
 export const useDashboardStore = defineStore('dashboard', () => {
-  // ── State ─────────────────────────────────────────────────
-  const actions = ref<ActionItem[]>(PLAN_DATA.flatMap((r) => r.actions));
+  const configStore = useConfigStore();
+
+  const actions = ref<ActionItem[]>([]);
   const loading = ref(false);
   const saving = ref<string | null>(null);
   const error = ref<string | null>(null);
   const lastSync = ref<Date | null>(null);
   const currentUser = ref('PTC');
 
-  // ── Computed ──────────────────────────────────────────────
   const summary = computed<DashboardSummary>(() => {
     const all = actions.value;
-    const completed = all.filter((a) => a.status === 'completed').length;
-    const inProgress = all.filter((a) => a.status === 'in_progress').length;
-    const delayed = all.filter((a) => a.status === 'delayed').length;
-    const blocked = all.filter((a) => a.status === 'blocked').length;
-    const notStarted = all.filter((a) => a.status === 'not_started').length;
-    const overallPct = Math.round(all.reduce((s, a) => s + a.progressPct, 0) / all.length);
+    const completed = all.filter(a => a.status === 'completed').length;
+    const inProgress = all.filter(a => a.status === 'in_progress').length;
+    const delayed = all.filter(a => a.status === 'delayed').length;
+    const blocked = all.filter(a => a.status === 'blocked').length;
+    const notStarted = all.filter(a => a.status === 'not_started').length;
+    const overallPct
+      = all.length === 0
+        ? 0
+        : Math.round(all.reduce((s, a) => s + a.progressPct, 0) / all.length);
     return {
       totalActions: all.length,
       completed,
@@ -35,72 +46,72 @@ export const useDashboardStore = defineStore('dashboard', () => {
   });
 
   const byRecommendation = computed(() =>
-    PLAN_DATA.map((rec) => ({
-      ...rec,
-      actions: actions.value.filter((a) => a.recNo === rec.no),
-      pct: Math.round(
-        actions.value.filter((a) => a.recNo === rec.no).reduce((s, a) => s + a.progressPct, 0) /
-          actions.value.filter((a) => a.recNo === rec.no).length,
-      ),
-    })),
+    configStore.recommendations.map(rec => {
+      const recActions = actions.value.filter(a => a.recNo === rec.no);
+      const pct
+        = recActions.length === 0
+          ? 0
+          : Math.round(
+              recActions.reduce((s, a) => s + a.progressPct, 0) / recActions.length,
+            );
+      return {
+        no: rec.no,
+        title: rec.title,
+        shortTitle: rec.short_title,
+        color: rec.color_key,
+        hexColor: rec.hex_color,
+        actions: recActions,
+        pct,
+      };
+    }),
   );
 
-  const blockedActions = computed(() => actions.value.filter((a) => a.status === 'blocked'));
-  const delayedActions = computed(() => actions.value.filter((a) => a.status === 'delayed'));
+  const blockedActions = computed(() =>
+    actions.value.filter(a => a.status === 'blocked'),
+  );
+  const delayedActions = computed(() =>
+    actions.value.filter(a => a.status === 'delayed'),
+  );
 
-  // ── Actions ───────────────────────────────────────────────
-  async function syncFromSheet() {
+  async function syncFromServer(): Promise<void> {
     loading.value = true;
     error.value = null;
     try {
-      const rows = await fetchProgress();
-      rows.forEach((row) => {
-        const action = actions.value.find((a) => a.id === row.id);
-        if (action) {
-          action.status = (row.status as ActionStatus) || 'not_started';
-          action.progressPct = Number(row.progressPct) || 0;
-          action.actualValue = row.actualValue || '';
-          action.notes = row.notes || '';
-          action.blockers = row.blockers || '';
-          action.lastUpdated = row.lastUpdated || '';
-          action.updatedBy = row.updatedBy || '';
-        }
-      });
+      actions.value = await fetchAllActions();
       lastSync.value = new Date();
-    } catch (e: any) {
-      error.value = e.message;
+    } catch (e) {
+      error.value = toErrorMessage(e);
     } finally {
       loading.value = false;
     }
   }
 
+  function applyServerUpdate(
+    action: ActionItem,
+    updated: Partial<Pick<ActionItem, 'lastUpdated' | 'updatedBy'>>,
+  ): void {
+    action.lastUpdated = updated.lastUpdated ?? new Date().toISOString();
+    action.updatedBy = updated.updatedBy ?? currentUser.value;
+  }
+
   async function saveAction(
     id: string,
-    patch: Partial<
-      Pick<ActionItem, 'status' | 'progressPct' | 'actualValue' | 'notes' | 'blockers'>
-    >,
-  ) {
-    const action = actions.value.find((a) => a.id === id);
+    patch: ActionPatch,
+  ): Promise<void> {
+    const action = actions.value.find(a => a.id === id);
     if (!action) return;
-    // Optimistic update
+
+    const previous = { ...action };
     Object.assign(action, patch);
     saving.value = id;
     error.value = null;
+
     try {
-      const payload: UpdatePayload = {
-        id,
-        status: action.status,
-        progressPct: action.progressPct,
-        actualValue: action.actualValue,
-        notes: action.notes,
-        blockers: action.blockers,
-        updatedBy: currentUser.value,
-      };
-      await updateAction(payload);
-      action.lastUpdated = new Date().toISOString();
-      action.updatedBy = currentUser.value;
-    } catch (e: any) {
-      error.value = e.message;
+      await updateActionProgress(id, patch, currentUser.value);
+      applyServerUpdate(action, {});
+    } catch (e) {
+      Object.assign(action, previous);
+      error.value = toErrorMessage(e);
     } finally {
       saving.value = null;
     }
@@ -117,7 +128,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     byRecommendation,
     blockedActions,
     delayedActions,
-    syncFromSheet,
+    syncFromServer,
     saveAction,
   };
 });
