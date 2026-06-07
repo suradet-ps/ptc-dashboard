@@ -56,13 +56,3 @@ export type DashboardSummary = {
   notStarted: number;
   overallPct: number;
 };
-
-export type UpdatePayload = {
-  id: string;
-  status: ActionStatus;
-  progressPct: number;
-  actualValue: string;
-  notes: string;
-  blockers: string;
-  updatedBy: string;
-};

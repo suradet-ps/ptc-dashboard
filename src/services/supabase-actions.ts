@@ -1,6 +1,6 @@
 // src/services/supabase-actions.ts
 
-import type { ActionItem, ActionStatus, RecommendationNo, UpdatePayload } from '@/types';
+import type { ActionItem, ActionStatus, RecommendationNo } from '@/types';
 import { supabase } from './supabase';
 
 type ActionRow = {
@@ -88,30 +88,6 @@ export async function updateActionProgress(
     .from('ptc_action_progress')
     .update(toDbPatch(patch, updatedBy))
     .eq('action_id', actionId);
-
-  if (error) throw new Error(error.message);
-}
-
-export async function bulkUpdateActions(payloads: UpdatePayload[]): Promise<void> {
-  if (payloads.length === 0) return;
-
-  const rows = payloads.map((p) => ({
-    action_id: p.id,
-    ...toDbPatch(
-      {
-        status: p.status,
-        progressPct: p.progressPct,
-        actualValue: p.actualValue,
-        notes: p.notes,
-        blockers: p.blockers,
-      },
-      p.updatedBy,
-    ),
-  }));
-
-  const { error } = await supabase
-    .from('ptc_action_progress')
-    .upsert(rows, { onConflict: 'action_id' });
 
   if (error) throw new Error(error.message);
 }

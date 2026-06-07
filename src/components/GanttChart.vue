@@ -130,7 +130,7 @@ function barOpacity(status: string): number {
           <div
             v-for="action in rec.actions"
             :key="action.id"
-            class="grid hover:bg-black/2 rounded transition-colors"
+            class="grid hover:bg-black/[0.02] rounded transition-colors"
             style="grid-template-columns: 200px 1fr"
           >
             <!-- Label column -->
