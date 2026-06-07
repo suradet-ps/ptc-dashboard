@@ -434,7 +434,26 @@ insert into public.ptc_fiscal_months (month_no, short_label, calendar_month) val
 
 
 -- ═════════════════════════════════════════════════════════════
--- 7. Done
+-- 7. Realtime — add ptc_action_progress to supabase_realtime publication
+--    so the dashboard can subscribe to live changes (Free tier supported:
+--    2M messages + 200 concurrent connections included).
+-- ═════════════════════════════════════════════════════════════
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'ptc_action_progress'
+  ) then
+    execute 'alter publication supabase_realtime add table public.ptc_action_progress';
+  end if;
+end $$;
+
+
+-- ═════════════════════════════════════════════════════════════
+-- 8. Done
 -- ═════════════════════════════════════════════════════════════
 -- Verify row counts (optional):
 --   select 'ptc_recommendations' as t, count(*) from ptc_recommendations
@@ -442,3 +461,9 @@ insert into public.ptc_fiscal_months (month_no, short_label, calendar_month) val
 --   union all select 'ptc_action_progress', count(*) from ptc_action_progress
 --   union all select 'ptc_status_catalog',  count(*) from ptc_status_catalog
 --   union all select 'ptc_fiscal_months',   count(*) from ptc_fiscal_months;
+--
+-- Verify Realtime publication (optional):
+--   select pubname, schemaname, tablename
+--   from pg_publication_tables
+--   where pubname = 'supabase_realtime'
+--   order by tablename;

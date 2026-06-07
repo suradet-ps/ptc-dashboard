@@ -100,6 +100,35 @@ order by rec_no, action_no;
 
 โมเดลนี้ตรงกับของเดิมที่ใช้ Google Apps Script (public read + public write runtime) แต่ป้องกันไม่ให้ anon แก้ไข master data เช่น เปลี่ยนชื่อข้อเสนอแนะ หรือแก้ไข config สถานะ
 
+## Realtime (Live multi-user sync)
+
+`schema.sql` จะเพิ่ม `ptc_action_progress` เข้า `supabase_realtime` publication **ให้อัตโนมัติ** ตอนรันครั้งแรก (free tier รองรับ 2M messages + 200 concurrent connections ฟรี)
+
+ถ้าต้องเปิดเพิ่มเอง (เช่นเพิ่ม table อื่นเข้า realtime) มี 2 วิธี:
+
+**วิธี A — SQL (แนะนำ):**
+
+```sql
+alter publication supabase_realtime add table public.ptc_action_progress;
+```
+
+**วิธี B — Dashboard UI:**
+
+Database → Publications → เลือก `supabase_realtime` → ติ๊ก table ที่ต้องการ
+
+> ⚠️ **ห้ามสับสนกับ** Database → Replication
+> เมนู Replication ในหน้า Dashboard คือ **External Replication** (Supabase ETL, private alpha + Pro plan)
+> Realtime ใช้คนละเมนูกัน
+
+ตรวจสอบสถานะ:
+
+```sql
+select pubname, schemaname, tablename
+from pg_publication_tables
+where pubname = 'supabase_realtime'
+order by tablename;
+```
+
 ## ตัวอย่าง query ที่ frontend จะใช้
 
 ```sql
