@@ -68,7 +68,7 @@ graph LR
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
+- [Bun](https://bun.sh/) (v1.3 or higher)
 - A Google Account (to create the backing Google Sheet and Apps Script)
 
 ### 1. Frontend Setup
@@ -78,7 +78,7 @@ graph LR
    ```bash
    git clone https://github.com/suradet-ps/ptc-dashboard.git
    cd ptc-dashboard
-   npm install
+   bun install
    ```
 
 2. Set up your local environment variables:
@@ -90,7 +90,7 @@ graph LR
 3. Start the development server (Note: You must complete the GAS setup below and update `VITE_GAS_URL` in your `.env.local` before the app can fetch data):
 
    ```bash
-   npm run dev
+   bun run dev
    ```
 
 ### 2. Backend Setup (Google Apps Script)

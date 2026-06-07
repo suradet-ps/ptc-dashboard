@@ -19,7 +19,7 @@ Contributions to improve the application architecture, UI, or backend scripts ar
 ### Code Style
 
 - This project uses ESLint and Prettier for code formatting.
-- Ensure you run `npm run lint:fix` and `npm run type-check` before committing your changes.
+- Ensure you run `bun run lint:fix` and `bun run type-check` before committing your changes.
 
 ### Community Guidelines
 
