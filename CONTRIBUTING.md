@@ -18,8 +18,8 @@ Contributions to improve the application architecture, UI, or backend scripts ar
 
 ### Code Style
 
-- This project uses ESLint and Prettier for code formatting.
-- Ensure you run `bun run lint:fix` and `bun run type-check` before committing your changes.
+- This project uses Biome for code formatting and linting.
+- Ensure you run `bun run check:fix` and `bun run type-check` before committing your changes.
 
 ### Community Guidelines
 

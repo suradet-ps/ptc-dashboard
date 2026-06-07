@@ -32,7 +32,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Linting & Formatting
-        run: bun run lint
+        run: bun run ci
 
       - name: Type Checking
         run: bun run type-check
