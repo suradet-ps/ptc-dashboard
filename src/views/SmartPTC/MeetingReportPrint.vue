@@ -23,13 +23,12 @@ onMounted(async () => {
   }, 500);
 });
 
-const meeting = computed(() => meetings.value.find(m => m.id === meetingId));
+const meeting = computed(() => meetings.value.find((m) => m.id === meetingId));
 const meetingAgendas = computed(() => store.getAgendasForMeeting(meetingId));
 
 // Extract month/year in Thai format for header
 const thaiDate = computed(() => {
-  if (!meeting.value?.date)
-    return '';
+  if (!meeting.value?.date) return '';
   const d = new Date(meeting.value.date);
   return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 });

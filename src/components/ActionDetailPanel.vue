@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-
-import type { ActionItem, ActionStatus } from '@/types';
-
 import { STATUS_CONFIG } from '@/data/plan-data';
 import { useDashboardStore } from '@/stores/dashboard';
+import type { ActionItem, ActionStatus } from '@/types';
 
 const props = defineProps<{ action: ActionItem | null; recColor: string }>();
-const emit = defineEmits<{ (_e: 'close'): void }>();
+const emit = defineEmits<(_e: 'close') => void>();
 const store = useDashboardStore();
 
 const localStatus = ref<ActionStatus>('not_started');
@@ -19,8 +17,7 @@ const localBlockers = ref('');
 watch(
   () => props.action,
   (a) => {
-    if (!a)
-      return;
+    if (!a) return;
     localStatus.value = a.status;
     localPct.value = a.progressPct;
     localActual.value = a.actualValue;
@@ -31,8 +28,7 @@ watch(
 );
 
 async function save() {
-  if (!props.action)
-    return;
+  if (!props.action) return;
   await store.saveAction(props.action.id, {
     status: localStatus.value,
     progressPct: localPct.value,
@@ -55,10 +51,7 @@ const statusOptions: ActionStatus[] = [
   'blocked',
 ];
 
-const statusColors: Record<
-  ActionStatus,
-  { bg: string; text: string; border: string }
-> = {
+const statusColors: Record<ActionStatus, { bg: string; text: string; border: string }> = {
   not_started: {
     bg: 'rgba(168,174,128,0.14)',
     text: '#6a7040',

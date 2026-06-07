@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
-
-import type { ActionItem } from '@/types';
-
 import ActionCard from '@/components/ActionCard.vue';
 import ActionDetailPanel from '@/components/ActionDetailPanel.vue';
 import GanttChart from '@/components/GanttChart.vue';
 import SummaryCards from '@/components/SummaryCards.vue';
 import { useDashboardStore } from '@/stores/dashboard';
+import type { ActionItem } from '@/types';
 
 const store = useDashboardStore();
 const { byRecommendation, blockedActions, delayedActions } = storeToRefs(store);
@@ -31,15 +29,12 @@ function recColor(no: number): string {
 
 // Filtered rec list based on active tab
 const visibleRecs = computed(() => {
-  if (activeTab.value === 'all')
-    return byRecommendation.value;
+  if (activeTab.value === 'all') return byRecommendation.value;
   const no = Number.parseInt(activeTab.value.replace('rec', ''));
-  return byRecommendation.value.filter(r => r.no === no);
+  return byRecommendation.value.filter((r) => r.no === no);
 });
 
-const alertsCount = computed(
-  () => blockedActions.value.length + delayedActions.value.length,
-);
+const alertsCount = computed(() => blockedActions.value.length + delayedActions.value.length);
 
 function setRecTab(no: number) {
   activeTab.value = `rec${no}` as 'rec1' | 'rec2' | 'rec3';

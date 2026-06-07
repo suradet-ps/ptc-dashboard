@@ -18,8 +18,7 @@ export async function fetchProgress(): Promise<GSheetRow[]> {
     redirect: 'follow',
   });
   const data = await res.json();
-  if (!data.success)
-    throw new Error(data.error);
+  if (!data.success) throw new Error(data.error);
   return data.data as GSheetRow[];
 }
 
@@ -29,8 +28,7 @@ export async function fetchTable(tableName: string): Promise<any[]> {
     redirect: 'follow',
   });
   const data = await res.json();
-  if (!data.success)
-    throw new Error(data.error);
+  if (!data.success) throw new Error(data.error);
   return data.data;
 }
 
@@ -43,8 +41,7 @@ async function gasPost(body: Record<string, string>): Promise<any> {
     body: new URLSearchParams(body).toString(),
   });
   const data = await res.json();
-  if (!data.success)
-    throw new Error(data.error);
+  if (!data.success) throw new Error(data.error);
   return data;
 }
 
@@ -55,9 +52,7 @@ export async function updateAction(payload: UpdatePayload): Promise<void> {
   });
 }
 
-export async function bulkUpdateActions(
-  payloads: UpdatePayload[],
-): Promise<void> {
+export async function bulkUpdateActions(payloads: UpdatePayload[]): Promise<void> {
   await gasPost({
     action: 'bulkUpdate',
     payloads: JSON.stringify(payloads),

@@ -23,7 +23,7 @@ onMounted(() => {
 });
 
 const availableMeetings = computed(() => {
-  return meetings.value.filter(m => m.status === 'scheduled' || m.status === 'active');
+  return meetings.value.filter((m) => m.status === 'scheduled' || m.status === 'active');
 });
 
 async function submitAgenda() {
@@ -45,16 +45,14 @@ async function submitAgenda() {
   try {
     await store.saveAgenda(agenda);
     router.push('/smart-ptc');
-  }
-  catch (e: any) {
+  } catch (e: any) {
     // eslint-disable-next-line no-alert
     alert(`การบันทึกล้มเหลว: ${e.message}`);
   }
 }
 
 function formatThaiDate(dateStr: string) {
-  if (!dateStr)
-    return '';
+  if (!dateStr) return '';
   const d = new Date(dateStr);
   return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
 }

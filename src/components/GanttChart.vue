@@ -34,12 +34,9 @@ function barWidth(start: number, end: number): string {
   return `${((end - start + 1) / 12) * 100}%`;
 }
 function barOpacity(status: string): number {
-  if (status === 'completed')
-    return 1;
-  if (status === 'in_progress')
-    return 0.88;
-  if (status === 'not_started')
-    return 0.3;
+  if (status === 'completed') return 1;
+  if (status === 'in_progress') return 0.88;
+  if (status === 'not_started') return 0.3;
   return 0.65;
 }
 </script>

@@ -2,12 +2,7 @@
 
 export type RecommendationNo = 1 | 2 | 3;
 
-export type ActionStatus
-  = | 'not_started'
-    | 'in_progress'
-    | 'completed'
-    | 'delayed'
-    | 'blocked';
+export type ActionStatus = 'not_started' | 'in_progress' | 'completed' | 'delayed' | 'blocked';
 
 export type ActionItem = {
   id: string;

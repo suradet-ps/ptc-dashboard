@@ -14,10 +14,7 @@ export const PLAN_DATA: Recommendation[] = [
         recNo: 1,
         no: 1,
         plan: 'จัดตั้ง/ทบทวนบทบาท Medication Safety Team',
-        subItems: [
-          'กำหนด TOR ทีมความปลอดภัยด้านยา',
-          'ประชุมทีมอย่างน้อยไตรมาสละ 1 ครั้ง',
-        ],
+        subItems: ['กำหนด TOR ทีมความปลอดภัยด้านยา', 'ประชุมทีมอย่างน้อยไตรมาสละ 1 ครั้ง'],
         timeline: 'มี.ค. – เม.ย. 68',
         startMonth: 6,
         endMonth: 7,
@@ -47,10 +44,7 @@ export const PLAN_DATA: Recommendation[] = [
         timeline: 'เม.ย. – ก.ย. 68',
         startMonth: 7,
         endMonth: 12,
-        kpis: [
-          'มี QI Plan เป็นลายลักษณ์อักษร',
-          'ครอบคลุม ≥ 1 ประเด็นจาก incident',
-        ],
+        kpis: ['มี QI Plan เป็นลายลักษณ์อักษร', 'ครอบคลุม ≥ 1 ประเด็นจาก incident'],
         target: 'มี QI Plan ≥ 1 เรื่อง',
         owners: ['เภสัชกรรับผิดชอบระบบยา', 'PTC'],
         reportCycle: 'ทุก 6 เดือน / รายงาน HA',
@@ -76,10 +70,7 @@ export const PLAN_DATA: Recommendation[] = [
         timeline: 'ต.ค. 67 – ก.ย. 68 (ตลอดปี)',
         startMonth: 1,
         endMonth: 12,
-        kpis: [
-          'ร้อยละของ ME ที่ได้รับการวิเคราะห์หาสาเหตุ',
-          'จำนวน barrier ที่พัฒนาใหม่',
-        ],
+        kpis: ['ร้อยละของ ME ที่ได้รับการวิเคราะห์หาสาเหตุ', 'จำนวน barrier ที่พัฒนาใหม่'],
         target: 'วิเคราะห์ 100% ของ incident ≥ E',
         owners: ['เภสัชกรทุกคน', 'หัวหน้าหอผู้ป่วย'],
         reportCycle: 'รายเดือน (เสนอ PTC ทุกไตรมาส)',
@@ -122,8 +113,7 @@ export const PLAN_DATA: Recommendation[] = [
   },
   {
     no: 2,
-    title:
-      'ติดตามการปฏิบัติตามแนวทาง HAD, ADR, Medication Reconciliation, DUE และมาตรฐานวิชาชีพเภสัชกรรม',
+    title: 'ติดตามการปฏิบัติตามแนวทาง HAD, ADR, Medication Reconciliation, DUE และมาตรฐานวิชาชีพเภสัชกรรม',
     shortTitle: 'HAD / Med Rec / DUE / ADR',
     color: 'emerald',
     actions: [
@@ -140,10 +130,7 @@ export const PLAN_DATA: Recommendation[] = [
         timeline: 'เม.ย. – มิ.ย. 68',
         startMonth: 7,
         endMonth: 9,
-        kpis: [
-          'ร้อยละ HAD ที่มี double checking ≥ 95%',
-          'ผ่านการตรวจสอบตาม checklist',
-        ],
+        kpis: ['ร้อยละ HAD ที่มี double checking ≥ 95%', 'ผ่านการตรวจสอบตาม checklist'],
         target: '≥ 95%',
         owners: ['ภก.สุรเดช ประถมศักดิ์', 'หัวหน้าหอผู้ป่วย'],
         reportCycle: 'ทุกไตรมาส / PTC',
@@ -238,8 +225,7 @@ export const PLAN_DATA: Recommendation[] = [
   },
   {
     no: 3,
-    title:
-      'ทบทวนการสำรองยาฉุกเฉิน ยาเสพติด และระบบการจ่ายยานอกเวลาราชการ ให้ตรงตามมาตรฐาน',
+    title: 'ทบทวนการสำรองยาฉุกเฉิน ยาเสพติด และระบบการจ่ายยานอกเวลาราชการ ให้ตรงตามมาตรฐาน',
     shortTitle: 'Emergency Stock & After-hour',
     color: 'amber',
     actions: [
@@ -307,10 +293,7 @@ export const PLAN_DATA: Recommendation[] = [
         timeline: 'พ.ค. – ก.ค. 68',
         startMonth: 8,
         endMonth: 10,
-        kpis: [
-          'มีนโยบาย After-hour dispensing เป็นลายลักษณ์อักษร',
-          'ร้อยละพยาบาลที่ผ่านการอบรม',
-        ],
+        kpis: ['มีนโยบาย After-hour dispensing เป็นลายลักษณ์อักษร', 'ร้อยละพยาบาลที่ผ่านการอบรม'],
         target: 'มีนโยบาย + อบรม ≥ 80%',
         owners: ['เภสัชกร', 'หัวหน้าหอผู้ป่วย', 'งานการพยาบาล'],
         reportCycle: 'ทุก 6 เดือน / PTC',

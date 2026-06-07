@@ -33,18 +33,13 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
     loading.value = true;
     error.value = '';
     try {
-      const [m, a] = await Promise.all([
-        fetchTable('Meetings'),
-        fetchTable('Agendas'),
-      ]);
+      const [m, a] = await Promise.all([fetchTable('Meetings'), fetchTable('Agendas')]);
       meetings.value = (m || []) as Meeting[];
       agendas.value = (a || []) as Agenda[];
-    }
-    catch (err: any) {
+    } catch (err: any) {
       error.value = err.message || 'Failed to load Smart PTC data';
       console.error(err);
-    }
-    finally {
+    } finally {
       loading.value = false;
     }
   }
@@ -53,19 +48,16 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
     loading.value = true;
     try {
       await updateTableRow('Meetings', meeting);
-      const index = meetings.value.findIndex(m => m.id === meeting.id);
+      const index = meetings.value.findIndex((m) => m.id === meeting.id);
       if (index > -1) {
         meetings.value[index] = meeting;
-      }
-      else {
+      } else {
         meetings.value.push(meeting);
       }
-    }
-    catch (err: any) {
+    } catch (err: any) {
       error.value = err.message;
       throw err;
-    }
-    finally {
+    } finally {
       loading.value = false;
     }
   }
@@ -74,25 +66,22 @@ export const useSmartPtcStore = defineStore('smartPtc', () => {
     loading.value = true;
     try {
       await updateTableRow('Agendas', agenda);
-      const index = agendas.value.findIndex(a => a.id === agenda.id);
+      const index = agendas.value.findIndex((a) => a.id === agenda.id);
       if (index > -1) {
         agendas.value[index] = agenda;
-      }
-      else {
+      } else {
         agendas.value.push(agenda);
       }
-    }
-    catch (err: any) {
+    } catch (err: any) {
       error.value = err.message;
       throw err;
-    }
-    finally {
+    } finally {
       loading.value = false;
     }
   }
 
   function getAgendasForMeeting(meetingId: string) {
-    return agendas.value.filter(a => a.meetingId === meetingId);
+    return agendas.value.filter((a) => a.meetingId === meetingId);
   }
 
   return {

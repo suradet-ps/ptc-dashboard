@@ -14,8 +14,7 @@ export function useCountUp(target: () => number, duration = 600) {
       // easeOutCubic
       const eased = 1 - (1 - progress) ** 3;
       display.value = Math.round(start + (to - start) * eased);
-      if (progress < 1)
-        requestAnimationFrame(tick);
+      if (progress < 1) requestAnimationFrame(tick);
     }
 
     requestAnimationFrame(tick);

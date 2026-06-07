@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-
-import type { ActionItem, ActionStatus } from '@/types';
-
 import { STATUS_CONFIG } from '@/data/plan-data';
 import { useDashboardStore } from '@/stores/dashboard';
+import type { ActionItem, ActionStatus } from '@/types';
 
 const props = defineProps<{ action: ActionItem; recColor: string }>();
-const emit = defineEmits<{ (_e: 'select', _action: ActionItem): void }>();
+const emit = defineEmits<(_e: 'select', _action: ActionItem) => void>();
 
 const store = useDashboardStore();
 const isSaving = computed(() => store.saving === props.action.id);
@@ -30,22 +28,16 @@ function onStatusChange(e: Event) {
 }
 
 const timeAgo = computed(() => {
-  if (!props.action.lastUpdated)
-    return null;
+  if (!props.action.lastUpdated) return null;
   const diff = Date.now() - new Date(props.action.lastUpdated).getTime();
   const h = Math.floor(diff / 3600000);
   const d = Math.floor(diff / 86400000);
-  if (d > 0)
-    return `${d} วันที่แล้ว`;
-  if (h > 0)
-    return `${h} ชม.ที่แล้ว`;
+  if (d > 0) return `${d} วันที่แล้ว`;
+  if (h > 0) return `${h} ชม.ที่แล้ว`;
   return 'เมื่อกี้';
 });
 
-const statusColors: Record<
-  ActionStatus,
-  { bg: string; text: string; border: string }
-> = {
+const statusColors: Record<ActionStatus, { bg: string; text: string; border: string }> = {
   not_started: {
     bg: 'rgba(224,224,224,0.4)',
     text: '#767676',

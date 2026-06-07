@@ -16,9 +16,7 @@ const animOverall = useCountUp(() => summary.value.overallPct);
 
 // Segmented bar percentages (relative to total actions)
 const segCompleted = computed(() =>
-  summary.value.totalActions > 0
-    ? (summary.value.completed / summary.value.totalActions) * 100
-    : 0,
+  summary.value.totalActions > 0 ? (summary.value.completed / summary.value.totalActions) * 100 : 0,
 );
 const segInProgress = computed(() =>
   summary.value.totalActions > 0
@@ -26,14 +24,10 @@ const segInProgress = computed(() =>
     : 0,
 );
 const segDelayed = computed(() =>
-  summary.value.totalActions > 0
-    ? (summary.value.delayed / summary.value.totalActions) * 100
-    : 0,
+  summary.value.totalActions > 0 ? (summary.value.delayed / summary.value.totalActions) * 100 : 0,
 );
 const segBlocked = computed(() =>
-  summary.value.totalActions > 0
-    ? (summary.value.blocked / summary.value.totalActions) * 100
-    : 0,
+  summary.value.totalActions > 0 ? (summary.value.blocked / summary.value.totalActions) * 100 : 0,
 );
 
 // KPI ring gauge constants
@@ -44,8 +38,7 @@ const CIRC = 175.929;
 const ARC = 131.947; // 0.75 × CIRC
 
 function ringFill(raw: number, total: number): string {
-  if (total <= 0)
-    return `0 ${CIRC}`;
+  if (total <= 0) return `0 ${CIRC}`;
   return `${(raw / total) * ARC} ${CIRC}`;
 }
 

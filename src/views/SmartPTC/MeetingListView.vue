@@ -14,13 +14,13 @@ onMounted(() => {
 });
 
 const upcomingMeetings = computed(() => {
-  return meetings.value.filter(m => m.status === 'scheduled');
+  return meetings.value.filter((m) => m.status === 'scheduled');
 });
 const activeMeetings = computed(() => {
-  return meetings.value.filter(m => m.status === 'active');
+  return meetings.value.filter((m) => m.status === 'active');
 });
 const pastMeetings = computed(() => {
-  return meetings.value.filter(m => m.status === 'completed');
+  return meetings.value.filter((m) => m.status === 'completed');
 });
 
 // Create new meeting dialog placeholder (could also just navigate to a compose page)
@@ -28,8 +28,7 @@ const isCreating = ref(false);
 const newMeeting = ref({ date: '', title: '' });
 
 async function handleCreateMeeting() {
-  if (!newMeeting.value.date || !newMeeting.value.title)
-    return;
+  if (!newMeeting.value.date || !newMeeting.value.title) return;
   const id = `M${Date.now()}`;
   await store.saveMeeting({
     id,
@@ -43,8 +42,7 @@ async function handleCreateMeeting() {
 }
 
 function formatThaiDate(dateStr: string) {
-  if (!dateStr)
-    return '';
+  if (!dateStr) return '';
   const d = new Date(dateStr);
   return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
 }
