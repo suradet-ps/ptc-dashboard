@@ -29,9 +29,25 @@ All tables use the `ptc_` prefix to keep them isolated from other objects in the
 ### Auth & identity
 
 - **`ptc_user_role`** — enum: `viewer` | `editor` | `admin`
-- **`ptc_profiles`** (1:1 with `auth.users`) — email, display_name, role. Auto-created on first sign-in via a trigger on `auth.users`. The first user to sign in becomes `admin` so the system bootstraps without manual SQL.
+- **`ptc_user`** (1:1 with `auth.users`) — email, display_name, role, is_active. Auto-created on user creation by a trigger on `auth.users`. The first user to be added becomes `admin` so the system bootstraps without manual SQL.
 - **`ptc_v_actions_full`** — join of actions + progress + recommendations, fetched in a single query
-- **`ptc_v_action_progress_with_author`** — progress rows joined to profiles so the UI can render `display_name` from the audit `updated_by` email
+- **`ptc_v_action_progress_with_author`** — progress rows joined to ptc_user so the UI can render `display_name` from the audit `updated_by` email
+
+### User management model (no public signups)
+
+The dashboard **does not** allow self-service sign-up. All users are created by an admin in two steps:
+
+1. **Create the auth user** in **Supabase Dashboard → Authentication → Users → Add user** (email + password, optionally auto-confirm)
+2. **Set the role** in the dashboard at **/admin/users** (admin only) — or via SQL:
+   ```sql
+   update ptc_user set role = 'admin' where email = 'someone@hospital.go.th';
+   ```
+
+The `handle_new_user` trigger (in `schema.sql`) auto-creates a `ptc_user` row whenever a new `auth.users` row appears. The first user gets `role = 'admin'` automatically; everyone else defaults to `editor`.
+
+Users sign in via the `/login` page (email + password). The auth flow is **email + password** — magic-link sign-in is intentionally not used because there's no need to email a one-click link to a user who can just type their password.
+
+`is_active = false` is a soft-delete: the row remains for audit history, but the helper `current_user_role()` returns NULL so the user is treated as signed-out by the application.
 
 ## Installation
 
@@ -41,16 +57,15 @@ All tables use the `ptc_` prefix to keep them isolated from other objects in the
 2. Choose a region close to your users (e.g. Singapore)
 3. Set a database password and save it securely
 
-### 2. Enable Magic Link sign-in (Auth providers)
+### 2. Enable Email + Password sign-in (Auth providers)
 
 In the Supabase Dashboard:
 
 - **Authentication → Providers → Email** — enable Email provider
-- **Authentication → Sign In / Up → User Signups** — leave **Enable signups** ON if you want open invitation; turn it OFF to onboard users manually via `auth.users.insert`
-- **Authentication → Email Templates** — customize the Magic Link template with your hospital logo / Thai text
-- Copy the **Site URL** into **Authentication → URL Configuration** and add `http://localhost:5173` to **Additional Redirect URLs** for local dev
+- **Authentication → Sign In / Up → User Signups** — turn **OFF** "Enable new users to sign up" so only admin-added users can authenticate
+- **Authentication → URL Configuration** — set **Site URL** to your production URL; add `http://localhost:5173` to **Additional Redirect URLs** for local dev
 
-The dashboard's sign-in form calls `supabase.auth.signInWithOtp({ email })`, which emails a one-click login link.
+Users sign in via the dashboard's `/login` page with email + password. Admins create accounts via **Authentication → Users → Add user** (with a temporary password they can share with the user).
 
 ### 3. Run `schema.sql`
 
@@ -96,7 +111,7 @@ union all select 'ptc_actions',         count(*) from ptc_actions
 union all select 'ptc_action_progress', count(*) from ptc_action_progress
 union all select 'ptc_status_catalog',  count(*) from ptc_status_catalog
 union all select 'ptc_fiscal_months',   count(*) from ptc_fiscal_months
-union all select 'ptc_profiles',         count(*) from ptc_profiles;
+union all select 'ptc_user',             count(*) from ptc_user;
 
 -- Inspect RLS policies
 select tablename, policyname, roles, cmd
@@ -107,7 +122,7 @@ order by tablename, policyname;
 -- Confirm the audit trigger exists
 select tgname, tgrelid::regclass
 from pg_trigger
-where tgname in ('trg_ptc_action_progress_audit', 'trg_on_auth_user_created', 'trg_ptc_profiles_set_updated_at');
+where tgname in ('trg_ptc_action_progress_audit', 'trg_on_auth_user_created', 'trg_ptc_user_set_updated_at');
 
 -- Smoke test the views
 select id, rec_no, plan, status, progress_pct
@@ -124,21 +139,20 @@ Expected row counts after a fresh `schema.sql` run:
 | ptc_action_progress | 12 |
 | ptc_status_catalog | 5 |
 | ptc_fiscal_months | 12 |
-| ptc_profiles | 0 (populated as users sign in) |
+| ptc_user | 0 (populated when admin adds users via Supabase Auth) |
 
 ### 6. First sign-in (bootstrap)
 
-1. Open the dashboard in a browser
-2. Click **เข้าสู่ระบบ** in the header
-3. Enter the email of the person who will be the admin
-4. Check inbox → click the magic link
-5. The dashboard reloads, the profile is created with `role = admin` (because they're the first user)
+1. In **Supabase Dashboard → Authentication → Users → Add user**, create the first user with the email of the person who will be the admin. Choose **Auto Confirm User** = ON so they can sign in immediately. Note the temporary password.
+2. Open the dashboard at your Site URL. You are redirected to `/login`.
+3. Sign in with the admin's email + the temporary password. The `handle_new_user` trigger creates the `ptc_user` row automatically with `role = 'admin'` (because they're the first user).
+4. **Change your password** (in **Authentication → Users → … → Update password** in the dashboard, or in the dashboard's **/admin/users → จัดการผู้ใช้** page once we add that flow).
 
-Subsequent users default to `editor`. To promote a user to `admin`:
+To add more team members:
 
-```sql
-update ptc_profiles set role = 'admin' where email = 'someone@hospital.go.th';
-```
+1. **Authentication → Users → Add user** (email + password, auto-confirm ON)
+2. Sign in as admin → go to **/admin/users** → assign a role
+3. Tell the new user their temporary password (they can change it in their own profile flow)
 
 ## Access model
 

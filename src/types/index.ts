@@ -123,9 +123,10 @@ export type UserRole = 'viewer' | 'editor' | 'admin';
 
 export const USER_ROLES: readonly UserRole[] = ['viewer', 'editor', 'admin'] as const;
 
-export type UserProfile = {
+export type UserRecord = {
   userId: string;
   email: string;
   displayName: string;
   role: UserRole;
+  isActive: boolean;
 };

@@ -3,7 +3,7 @@ import type { Session, Subscription } from '@supabase/supabase-js';
 import { computed, onScopeDispose, readonly, ref, shallowRef } from 'vue';
 
 import { supabase } from '@/services/supabase';
-import type { UserProfile, UserRole } from '@/types';
+import type { UserRecord, UserRole } from '@/types';
 
 // ─────────────────────────────────────────────────────────────────
 // Module-level singleton state.
@@ -13,52 +13,62 @@ import type { UserProfile, UserRole } from '@/types';
 // scoped tightly to auth concerns (no business state).
 // ─────────────────────────────────────────────────────────────────
 const session = shallowRef<Session | null>(null);
-const profile = ref<UserProfile | null>(null);
+const user = ref<UserRecord | null>(null);
 const loading = ref(false);
-const magicLinkSent = ref(false);
 const error = ref<string | null>(null);
 
 let initialized = false;
 let subscription: Subscription | null = null;
 let refCount = 0;
 
-async function loadProfile(userId: string, email: string) {
-  const { data, error: profileErr } = await supabase
-    .from('ptc_profiles')
-    .select('user_id, email, display_name, role')
+async function loadUser(userId: string) {
+  const { data, error: loadErr } = await supabase
+    .from('ptc_user')
+    .select('user_id, email, display_name, role, is_active')
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (profileErr) {
-    error.value = `ไม่สามารถโหลดข้อมูลโปรไฟล์ได้: ${profileErr.message}`;
-    profile.value = null;
+  if (loadErr) {
+    error.value = `ไม่สามารถโหลดข้อมูลผู้ใช้ได้: ${loadErr.message}`;
+    user.value = null;
     return;
   }
 
   if (!data) {
-    // Profile is normally created by the auth.users trigger.
-    // If it's missing (e.g. trigger wasn't installed), fall back
-    // to a safe editor-role stub so the UI stays functional.
-    profile.value = {
+    // ptc_user row normally created by the auth.users trigger
+    // (handle_new_user). If it's missing — e.g. the trigger wasn't
+    // installed or the user was deleted manually — keep them signed
+    // in but mark as viewer. Admins can fix the missing row.
+    const sess = session.value;
+    user.value = {
       userId,
-      email,
-      displayName: email.split('@')[0] ?? email,
-      role: 'editor',
+      email: sess?.user.email ?? '',
+      displayName: sess?.user.email?.split('@')[0] ?? '',
+      role: 'viewer',
+      isActive: true,
     };
     return;
   }
 
-  profile.value = {
+  if (!data.is_active) {
+    // Soft-deleted users cannot stay signed in.
+    error.value = 'บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ';
+    await supabase.auth.signOut();
+    user.value = null;
+    return;
+  }
+
+  user.value = {
     userId: data.user_id,
     email: data.email,
     displayName: data.display_name || data.email.split('@')[0] || data.email,
-    role: (data.role as UserRole) ?? 'editor',
+    role: (data.role as UserRole) ?? 'viewer',
+    isActive: data.is_active,
   };
 }
 
-function clearProfile() {
-  profile.value = null;
-  magicLinkSent.value = false;
+function clearUser() {
+  user.value = null;
   error.value = null;
 }
 
@@ -70,7 +80,7 @@ function init() {
   supabase.auth.getSession().then(({ data }) => {
     session.value = data.session;
     if (data.session?.user) {
-      void loadProfile(data.session.user.id, data.session.user.email ?? '');
+      void loadUser(data.session.user.id);
     }
   });
 
@@ -78,9 +88,9 @@ function init() {
   const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
     session.value = newSession;
     if (newSession?.user) {
-      void loadProfile(newSession.user.id, newSession.user.email ?? '');
+      void loadUser(newSession.user.id);
     } else {
-      clearProfile();
+      clearUser();
     }
   });
   subscription = data.subscription;
@@ -102,29 +112,36 @@ export function useAuth() {
     if (refCount <= 0) teardown();
   });
 
-  const user = computed(() => session.value?.user ?? null);
-  const isAuthenticated = computed(() => session.value !== null);
+  const authUser = computed(() => session.value?.user ?? null);
+  const isAuthenticated = computed(() => session.value !== null && user.value !== null);
   const isEditorOrAbove = computed(() => {
-    const r = profile.value?.role;
+    const r = user.value?.role;
     return r === 'editor' || r === 'admin';
   });
-  const isAdmin = computed(() => profile.value?.role === 'admin');
+  const isAdmin = computed(() => user.value?.role === 'admin');
 
-  async function signInWithMagicLink(email: string) {
+  async function signInWithPassword(email: string, password: string) {
     error.value = null;
-    magicLinkSent.value = false;
     loading.value = true;
     try {
-      const { error: signInErr } = await supabase.auth.signInWithOtp({
+      const { data, error: signInErr } = await supabase.auth.signInWithPassword({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-        },
+        password,
       });
       if (signInErr) throw signInErr;
-      magicLinkSent.value = true;
+      session.value = data.session;
+      if (data.user) await loadUser(data.user.id);
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'ไม่สามารถส่งลิงก์เข้าสู่ระบบได้';
+      const msg = e instanceof Error ? e.message : 'ไม่สามารถเข้าสู่ระบบได้';
+      // Translate the most common Supabase auth errors to Thai.
+      if (/invalid login credentials/i.test(msg)) {
+        error.value = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+      } else if (/email not confirmed/i.test(msg)) {
+        error.value = 'กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ (ตรวจสอบ inbox)';
+      } else {
+        error.value = msg;
+      }
+      throw e;
     } finally {
       loading.value = false;
     }
@@ -142,29 +159,28 @@ export function useAuth() {
   async function updateDisplayName(name: string) {
     if (!user.value) return;
     const { error: updateErr } = await supabase
-      .from('ptc_profiles')
+      .from('ptc_user')
       .update({ display_name: name })
-      .eq('user_id', user.value.id);
+      .eq('user_id', user.value.userId);
     if (updateErr) {
       error.value = `ไม่สามารถอัปเดตชื่อที่แสดงได้: ${updateErr.message}`;
       return;
     }
-    if (profile.value) {
-      profile.value = { ...profile.value, displayName: name };
+    if (user.value) {
+      user.value = { ...user.value, displayName: name };
     }
   }
 
   return {
     session: readonly(session),
-    user,
-    profile: readonly(profile),
+    authUser,
+    user: readonly(user),
     isAuthenticated,
     isEditorOrAbove,
     isAdmin,
     loading: readonly(loading),
-    magicLinkSent: readonly(magicLinkSent),
     error: readonly(error),
-    signInWithMagicLink,
+    signInWithPassword,
     signOut,
     updateDisplayName,
   };

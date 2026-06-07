@@ -17,6 +17,8 @@ drop table if exists public.ptc_actions cascade;
 drop table if exists public.ptc_recommendations cascade;
 drop table if exists public.ptc_status_catalog cascade;
 drop table if exists public.ptc_fiscal_months cascade;
+drop table if exists public.ptc_user cascade;
+-- Legacy name from an earlier iteration; safe to drop if present.
 drop table if exists public.ptc_profiles cascade;
 
 drop function if exists public.set_updated_at() cascade;
@@ -150,28 +152,35 @@ comment on table public.ptc_fiscal_months is
   'Thai fiscal year month labels. month_no=1 corresponds to October.';
 
 
--- 2.8 User role enum (for ptc_profiles.role)
+-- 2.8 User role enum (for ptc_user.role)
 create type public.ptc_user_role as enum ('viewer', 'editor', 'admin');
 
 
--- 2.9 User profiles (1:1 with auth.users)
---     Created automatically on first sign-in via auth.users trigger.
---     The first user to sign in becomes 'admin' so the system bootstraps
---     without manual SQL. Subsequent users default to 'editor'.
-create table public.ptc_profiles (
+-- 2.9 Application users (1:1 with auth.users)
+--     The auth user itself is created by an admin via Supabase
+--     Authentication → Users → Add user. This row is auto-created
+--     by the trg_on_auth_user_created trigger when the auth user
+--     first appears. The first-ever user becomes 'admin' so the
+--     system bootstraps without manual SQL. Subsequent users
+--     default to 'editor' and can be promoted/demoted via the
+--     admin user-management page.
+create table public.ptc_user (
   user_id       uuid primary key references auth.users(id) on delete cascade,
   email         text    not null,
   display_name  text    not null default '',
   role          public.ptc_user_role not null default 'editor',
+  is_active     boolean not null default true,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
-comment on table public.ptc_profiles is
-  'Application-level user profile. 1:1 with auth.users. Drives role-based authorization and display_name for audit trails.';
-comment on column public.ptc_profiles.role is
-  'Application role: viewer (read-only), editor (read+write runtime), admin (full CRUD including master/config).';
-comment on column public.ptc_profiles.display_name is
+comment on table public.ptc_user is
+  'Application-level user. 1:1 with auth.users. Drives role-based authorization and display_name for audit trails. is_active=false soft-deletes a user without losing their audit history.';
+comment on column public.ptc_user.role is
+  'Application role: viewer (read-only), editor (read+write runtime), admin (full CRUD including master/config + other users).';
+comment on column public.ptc_user.display_name is
   'Optional human-readable name shown in audit columns and header. Falls back to email when empty.';
+comment on column public.ptc_user.is_active is
+  'Soft-delete flag. inactive users cannot sign in (the auth.users row still exists for audit purposes but is blocked by handle_new_user and the auth guard).';
 
 
 -- ─────────────────────────────────────────────────────────────
@@ -205,8 +214,8 @@ create trigger trg_ptc_agendas_set_updated_at
   before update on public.ptc_agendas
   for each row execute function public.set_updated_at();
 
-create trigger trg_ptc_profiles_set_updated_at
-  before update on public.ptc_profiles
+create trigger trg_ptc_user_set_updated_at
+  before update on public.ptc_user
   for each row execute function public.set_updated_at();
 
 
@@ -249,9 +258,12 @@ create trigger trg_ptc_action_progress_audit
   for each row execute function public.set_action_progress_audit();
 
 
--- 4.2 Bootstrap — create a profile row when a new auth.users row appears.
---     First-ever user becomes 'admin' so the system bootstraps without
---     manual SQL. Later users default to 'editor'.
+-- 4.2 Bootstrap — create a ptc_user row when a new auth.users row appears.
+--     Admins add users via Supabase Authentication → Users → Add user
+--     (with email + password, auto-confirm optional). The first-ever
+--     user becomes 'admin' so the system bootstraps without manual SQL.
+--     Later users default to 'editor' and can be promoted via the
+--     /admin/users page in the app.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -261,8 +273,8 @@ as $$
 declare
   user_count integer;
 begin
-  select count(*) into user_count from public.ptc_profiles;
-  insert into public.ptc_profiles (user_id, email, display_name, role)
+  select count(*) into user_count from public.ptc_user;
+  insert into public.ptc_user (user_id, email, display_name, role)
   values (
     new.id,
     new.email,
@@ -573,9 +585,9 @@ select
   p.*,
   pr.display_name as updated_by_display_name
 from public.ptc_action_progress p
-left join public.ptc_profiles pr on pr.email = p.updated_by;
+left join public.ptc_user pr on pr.email = p.updated_by;
 comment on view public.ptc_v_action_progress_with_author is
-  'ptc_action_progress joined to ptc_profiles so UI can render display_name from updated_by email.';
+  'ptc_action_progress joined to ptc_user so UI can render display_name from updated_by email.';
 
 
 -- ═════════════════════════════════════════════════════════════
@@ -586,7 +598,8 @@ comment on view public.ptc_v_action_progress_with_author is
 --   union all select 'ptc_actions',         count(*) from ptc_actions
 --   union all select 'ptc_action_progress', count(*) from ptc_action_progress
 --   union all select 'ptc_status_catalog',  count(*) from ptc_status_catalog
---   union all select 'ptc_fiscal_months',   count(*) from ptc_fiscal_months;
+--   union all select 'ptc_fiscal_months',   count(*) from ptc_fiscal_months
+--   union all select 'ptc_user',             count(*) from ptc_user;
 --
 -- Verify Realtime publication (optional):
 --   select pubname, schemaname, tablename

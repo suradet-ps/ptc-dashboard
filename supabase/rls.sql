@@ -9,12 +9,11 @@
 -- Access model (authenticated-only writes):
 --   • anon          → SELECT on every public table (read-only)
 --   • viewer        → SELECT on every public table
---   • editor        → SELECT + INSERT/UPDATE/DELETE on runtime tables
+--   • editor        → SELECT + INSERT/UPDATE on runtime tables
 --                      (ptc_action_progress, ptc_meetings, ptc_agendas)
 --   • admin         → full CRUD on every public table
 --                     (including ptc_recommendations, ptc_actions,
---                      ptc_status_catalog, ptc_fiscal_months,
---                      ptc_profiles)
+--                      ptc_status_catalog, ptc_fiscal_months, ptc_user)
 --
 -- Role lookup uses a SECURITY DEFINER helper to bypass RLS, so the
 -- policies don't recurse when checking the caller's role.
@@ -22,7 +21,7 @@
 
 
 -- ═════════════════════════════════════════════════════════════
--- 0. Cleanup existing policies + helper (safe re-run)
+-- 0. Cleanup existing policies + helpers (safe re-run)
 -- ═════════════════════════════════════════════════════════════
 do $$
 declare r record;
@@ -39,6 +38,8 @@ begin
         'ptc_agendas',
         'ptc_status_catalog',
         'ptc_fiscal_months',
+        'ptc_user',
+        -- legacy name from an earlier iteration
         'ptc_profiles'
       )
   loop
@@ -49,6 +50,7 @@ end $$;
 drop function if exists public.current_user_role() cascade;
 drop function if exists public.is_admin() cascade;
 drop function if exists public.is_editor_or_above() cascade;
+drop function if exists public.is_active_user() cascade;
 
 
 -- ═════════════════════════════════════════════════════════════
@@ -61,14 +63,13 @@ alter table public.ptc_meetings         enable row level security;
 alter table public.ptc_agendas          enable row level security;
 alter table public.ptc_status_catalog   enable row level security;
 alter table public.ptc_fiscal_months    enable row level security;
-alter table public.ptc_profiles         enable row level security;
+alter table public.ptc_user             enable row level security;
 
 
 -- ═════════════════════════════════════════════════════════════
--- 2. Role lookup helper
---    SECURITY DEFINER + lock_search_path + reads the caller's
---    role from ptc_profiles. Bypasses RLS for the lookup itself
---    so policies don't recurse.
+-- 2. Role lookup helpers
+--    SECURITY DEFINER + stable + read from ptc_user. Bypasses RLS
+--    for the lookup itself so policies don't recurse.
 -- ═════════════════════════════════════════════════════════════
 create or replace function public.current_user_role()
 returns public.ptc_user_role
@@ -78,9 +79,23 @@ set search_path = public
 stable
 as $$
   select role
-  from public.ptc_profiles
+  from public.ptc_user
   where user_id = auth.uid()
+    and is_active = true
   limit 1;
+$$;
+
+create or replace function public.is_active_user()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists(
+    select 1 from public.ptc_user
+    where user_id = auth.uid() and is_active = true
+  );
 $$;
 
 create or replace function public.is_admin()
@@ -117,11 +132,12 @@ create policy "anon read meetings"           on public.ptc_meetings         for 
 create policy "anon read agendas"            on public.ptc_agendas          for select to anon        using (true);
 create policy "anon read status_catalog"     on public.ptc_status_catalog   for select to anon        using (true);
 create policy "anon read fiscal_months"      on public.ptc_fiscal_months    for select to anon        using (true);
-create policy "anon read profiles"           on public.ptc_profiles         for select to anon        using (true);
+create policy "anon read users"              on public.ptc_user             for select to anon        using (true);
 
 
 -- ═════════════════════════════════════════════════════════════
 -- 4. authenticated base — SELECT on every public table
+--    (active user only — inactive rows are not visible)
 -- ═════════════════════════════════════════════════════════════
 create policy "authenticated read recommendations"  on public.ptc_recommendations  for select to authenticated using (true);
 create policy "authenticated read actions"           on public.ptc_actions          for select to authenticated using (true);
@@ -130,7 +146,8 @@ create policy "authenticated read meetings"          on public.ptc_meetings     
 create policy "authenticated read agendas"           on public.ptc_agendas          for select to authenticated using (true);
 create policy "authenticated read status_catalog"    on public.ptc_status_catalog   for select to authenticated using (true);
 create policy "authenticated read fiscal_months"     on public.ptc_fiscal_months    for select to authenticated using (true);
-create policy "authenticated read profiles"          on public.ptc_profiles         for select to authenticated using (true);
+create policy "authenticated read users"             on public.ptc_user             for select to authenticated
+  using (public.is_active_user() or public.is_admin());
 
 
 -- ═════════════════════════════════════════════════════════════
@@ -193,22 +210,24 @@ create policy "admin all fiscal_months"     on public.ptc_fiscal_months   for al
 
 
 -- ═════════════════════════════════════════════════════════════
--- 7. profiles policies
---    • everyone authenticated: SELECT all
---    • self: UPDATE own display_name
---    • admin: full CRUD
+-- 7. ptc_user policies
+--    • everyone authenticated: SELECT active users (admins also see inactive)
+--    • self: UPDATE own display_name (not role, not is_active)
+--    • admin: full CRUD (set role, deactivate, etc.)
 -- ═════════════════════════════════════════════════════════════
 create policy "user update own profile"
-  on public.ptc_profiles for update to authenticated
+  on public.ptc_user for update to authenticated
   using (user_id = auth.uid())
   with check (
     user_id = auth.uid()
-    -- users cannot promote/demote themselves
-    and role = (select role from public.ptc_profiles where user_id = auth.uid())
+    -- users can change their own display_name but cannot promote
+    -- or demote themselves, and cannot reactivate themselves.
+    and role = (select role from public.ptc_user where user_id = auth.uid())
+    and is_active = (select is_active from public.ptc_user where user_id = auth.uid())
   );
 
-create policy "admin all profiles"
-  on public.ptc_profiles for all to authenticated
+create policy "admin all users"
+  on public.ptc_user for all to authenticated
   using (public.is_admin())
   with check (public.is_admin());
 
@@ -223,4 +242,4 @@ create policy "admin all profiles"
 --   order by tablename, policyname;
 --
 -- Verify the role helper resolves correctly:
---   select public.current_user_role(), public.is_editor_or_above();
+--   select public.current_user_role(), public.is_editor_or_above(), public.is_active_user();
