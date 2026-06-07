@@ -1,12 +1,13 @@
-// src/composables/useCountUp.ts
+// src/composables/use-count-up.ts
 import { ref, watch } from 'vue';
 
 export function useCountUp(target: () => number, duration = 600) {
   const display = ref(target());
 
-  watch(target, (to, from) => {
+  watch(target, (to, from, onCleanup) => {
     const start = from ?? 0;
     const startTime = performance.now();
+    let raf = 0;
 
     function tick(now: number) {
       const elapsed = now - startTime;
@@ -14,10 +15,14 @@ export function useCountUp(target: () => number, duration = 600) {
       // easeOutCubic
       const eased = 1 - (1 - progress) ** 3;
       display.value = Math.round(start + (to - start) * eased);
-      if (progress < 1) requestAnimationFrame(tick);
+      if (progress < 1) raf = requestAnimationFrame(tick);
     }
 
-    requestAnimationFrame(tick);
+    onCleanup(() => {
+      if (raf) cancelAnimationFrame(raf);
+    });
+
+    raf = requestAnimationFrame(tick);
   });
 
   return display;

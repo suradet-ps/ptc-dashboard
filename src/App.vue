@@ -3,9 +3,12 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 import AppHeader from '@/components/AppHeader.vue';
+import ToastHost from '@/components/ToastHost.vue';
 
 const route = useRoute();
-const isPrintView = computed(() => route.name === 'smart-ptc-meeting-print');
+const isPrintView = computed(
+  () => route.name === 'smart-ptc-meeting-print' || route.name === 'smart-ptc-agenda-print',
+);
 </script>
 
 <template>
@@ -71,4 +74,5 @@ const isPrintView = computed(() => route.name === 'smart-ptc-meeting-print');
       <router-view />
     </div>
   </div>
+  <ToastHost />
 </template>

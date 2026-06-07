@@ -3,25 +3,37 @@ import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { toMessage, useToasts } from '@/composables/use-toast';
 import { useSmartPtcStore } from '@/stores/useSmartPtcStore';
 
 const store = useSmartPtcStore();
 const route = useRoute();
 const { meetings } = storeToRefs(store);
+const { push: pushToast } = useToasts();
 
-const meetingId = route.params.id as string;
-const readyToPrint = ref(false);
+const meetingId = Array.isArray(route.params.id)
+  ? (route.params.id[0] ?? '')
+  : (route.params.id ?? '');
+const ready = ref(false);
 
 onMounted(async () => {
   if (meetings.value.length === 0) {
-    await store.loadData();
+    try {
+      await store.loadData();
+    } catch (e) {
+      pushToast({ type: 'error', message: toMessage(e) });
+    }
   }
-  // Allow slight delay for rendering before print dialog
-  setTimeout(() => {
-    readyToPrint.value = true;
-    window.print();
-  }, 500);
+  ready.value = true;
 });
+
+function printNow() {
+  window.print();
+}
+
+function closeWindow() {
+  window.close();
+}
 
 const meeting = computed(() => meetings.value.find((m) => m.id === meetingId));
 const meetingAgendas = computed(() => store.getAgendasForMeeting(meetingId));
@@ -35,7 +47,23 @@ const thaiDate = computed(() => {
 </script>
 
 <template>
-  <div v-if="meeting && readyToPrint" class="p-8 bg-white text-black min-h-screen max-w-4xl mx-auto report-container">
+  <div v-if="meeting && ready" class="p-8 bg-white text-black min-h-screen max-w-4xl mx-auto report-container">
+    <div class="no-print mb-6 flex items-center justify-end gap-2">
+      <button
+        type="button"
+        class="btn-primary text-sm"
+        @click="printNow"
+      >
+        พิมพ์เอกสาร
+      </button>
+      <button
+        type="button"
+        class="btn-ghost text-sm"
+        @click="closeWindow"
+      >
+        ปิดหน้าต่าง
+      </button>
+    </div>
     <!-- Cover / Header -->
     <div class="text-center mb-8">
       <h1 class="text-2xl font-bold leading-relaxed">
@@ -132,6 +160,9 @@ const thaiDate = computed(() => {
     color: black;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+  .no-print {
+    display: none !important;
   }
 }
 </style>

@@ -29,7 +29,7 @@ function selectAction(action: ActionItem) {
 // Filtered rec list based on active tab
 const visibleRecs = computed(() => {
   if (activeTab.value === 'all') return byRecommendation.value;
-  const no = Number.parseInt(activeTab.value.replace('rec', ''));
+  const no = Number.parseInt(activeTab.value.replace('rec', ''), 10);
   return byRecommendation.value.filter((r) => r.no === no);
 });
 

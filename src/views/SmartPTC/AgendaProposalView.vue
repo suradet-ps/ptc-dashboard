@@ -3,11 +3,13 @@ import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { toMessage, useToasts } from '@/composables/use-toast';
 import { useSmartPtcStore } from '@/stores/useSmartPtcStore';
 
 const store = useSmartPtcStore();
 const router = useRouter();
 const { meetings, loading } = storeToRefs(store);
+const { push: pushToast } = useToasts();
 
 const form = ref({
   title: '',
@@ -34,7 +36,7 @@ async function submitAgenda() {
   }
 
   const agenda = {
-    id: `A${Date.now()}`,
+    id: `A${crypto.randomUUID()}`,
     meetingId: form.value.meetingId,
     title: form.value.title,
     proposer: form.value.proposer,
@@ -45,9 +47,8 @@ async function submitAgenda() {
   try {
     await store.saveAgenda(agenda);
     router.push('/smart-ptc');
-  } catch (e: any) {
-    // eslint-disable-next-line no-alert
-    alert(`การบันทึกล้มเหลว: ${e.message}`);
+  } catch (e) {
+    pushToast({ type: 'error', message: `การบันทึกล้มเหลว: ${toMessage(e)}` });
   }
 }
 

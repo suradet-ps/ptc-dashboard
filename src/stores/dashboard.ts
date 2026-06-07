@@ -2,7 +2,7 @@
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, onScopeDispose, ref } from 'vue';
 import { supabase } from '@/services/supabase';
 import {
   type ActionPatch,
@@ -10,7 +10,7 @@ import {
   updateActionProgress,
 } from '@/services/supabase-actions';
 import { useConfigStore } from '@/stores/config';
-import type { ActionItem, DashboardSummary } from '@/types';
+import type { ActionItem, DashboardSummary, RecommendationNo } from '@/types';
 
 function toErrorMessage(e: unknown): string {
   return e instanceof Error ? e.message : 'Unknown error';
@@ -27,16 +27,41 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const currentUser = ref('PTC');
 
   let realtimeChannel: RealtimeChannel | null = null;
+  // Echo-suppression: ignore realtime payloads for the action the current
+  // client just wrote for a short window, so we don't refetch the whole
+  // list immediately after our own write.
+  const ECHO_WINDOW_MS = 1500;
+  const recentWrites = new Map<string, number>();
 
   const summary = computed<DashboardSummary>(() => {
     const all = actions.value;
-    const completed = all.filter((a) => a.status === 'completed').length;
-    const inProgress = all.filter((a) => a.status === 'in_progress').length;
-    const delayed = all.filter((a) => a.status === 'delayed').length;
-    const blocked = all.filter((a) => a.status === 'blocked').length;
-    const notStarted = all.filter((a) => a.status === 'not_started').length;
-    const overallPct =
-      all.length === 0 ? 0 : Math.round(all.reduce((s, a) => s + a.progressPct, 0) / all.length);
+    let completed = 0;
+    let inProgress = 0;
+    let delayed = 0;
+    let blocked = 0;
+    let notStarted = 0;
+    let totalPct = 0;
+    for (const a of all) {
+      switch (a.status) {
+        case 'completed':
+          completed++;
+          break;
+        case 'in_progress':
+          inProgress++;
+          break;
+        case 'delayed':
+          delayed++;
+          break;
+        case 'blocked':
+          blocked++;
+          break;
+        default:
+          notStarted++;
+          break;
+      }
+      totalPct += a.progressPct;
+    }
+    const overallPct = all.length === 0 ? 0 : Math.round(totalPct / all.length);
     return {
       totalActions: all.length,
       completed,
@@ -56,7 +81,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
           ? 0
           : Math.round(recActions.reduce((s, a) => s + a.progressPct, 0) / recActions.length);
       return {
-        no: rec.no,
+        no: rec.no as RecommendationNo,
         title: rec.title,
         shortTitle: rec.short_title,
         color: rec.color_key,
@@ -75,6 +100,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
     lastSync.value = new Date();
   }
 
+  function isEcho(actionId: string): boolean {
+    const ts = recentWrites.get(actionId);
+    if (ts === undefined) return false;
+    if (Date.now() - ts > ECHO_WINDOW_MS) {
+      recentWrites.delete(actionId);
+      return false;
+    }
+    return true;
+  }
+
   function ensureRealtimeSubscription(): void {
     if (realtimeChannel) return;
     realtimeChannel = supabase
@@ -82,7 +117,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'ptc_action_progress' },
-        () => {
+        (payload) => {
+          const incomingId =
+            (payload.new as { action_id?: string } | null)?.action_id ??
+            (payload.old as { action_id?: string } | null)?.action_id;
+          if (incomingId && isEcho(incomingId)) return;
           refetchActions().catch((e: unknown) => {
             error.value = toErrorMessage(e);
           });
@@ -109,6 +148,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       void supabase.removeChannel(realtimeChannel);
       realtimeChannel = null;
     }
+    recentWrites.clear();
   }
 
   async function saveAction(id: string, patch: Partial<ActionPatch>): Promise<void> {
@@ -119,6 +159,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     Object.assign(action, patch);
     saving.value = id;
     error.value = null;
+    recentWrites.set(id, Date.now());
 
     try {
       await updateActionProgress(id, patch, currentUser.value);
@@ -126,11 +167,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
       action.updatedBy = currentUser.value;
     } catch (e) {
       Object.assign(action, previous);
+      recentWrites.delete(id);
       error.value = toErrorMessage(e);
     } finally {
       saving.value = null;
     }
   }
+
+  onScopeDispose(() => {
+    teardownRealtime();
+  });
 
   return {
     actions,

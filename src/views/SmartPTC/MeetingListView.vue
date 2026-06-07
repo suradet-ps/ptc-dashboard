@@ -3,11 +3,13 @@ import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+import { toMessage, useToasts } from '@/composables/use-toast';
 import { useSmartPtcStore } from '@/stores/useSmartPtcStore';
 
 const store = useSmartPtcStore();
 const { meetings, loading, error } = storeToRefs(store);
 const router = useRouter();
+const { push: pushToast } = useToasts();
 
 onMounted(() => {
   store.loadData();
@@ -29,16 +31,20 @@ const newMeeting = ref({ date: '', title: '' });
 
 async function handleCreateMeeting() {
   if (!newMeeting.value.date || !newMeeting.value.title) return;
-  const id = `M${Date.now()}`;
-  await store.saveMeeting({
-    id,
-    date: newMeeting.value.date,
-    title: newMeeting.value.title,
-    status: 'scheduled',
-    reportUrl: '',
-  });
-  isCreating.value = false;
-  newMeeting.value = { date: '', title: '' };
+  const id = `M${crypto.randomUUID()}`;
+  try {
+    await store.saveMeeting({
+      id,
+      date: newMeeting.value.date,
+      title: newMeeting.value.title,
+      status: 'scheduled',
+      reportUrl: '',
+    });
+    isCreating.value = false;
+    newMeeting.value = { date: '', title: '' };
+  } catch (e) {
+    pushToast({ type: 'error', message: `สร้างการประชุมไม่สำเร็จ: ${toMessage(e)}` });
+  }
 }
 
 function formatThaiDate(dateStr: string) {
