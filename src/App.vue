@@ -12,13 +12,14 @@ const configStore = useConfigStore();
 const isPrintView = computed(
   () => route.name === 'smart-ptc-meeting-print' || route.name === 'smart-ptc-agenda-print',
 );
+const isLoginView = computed(() => route.name === 'login');
 const hasConfigError = computed(() => Boolean(configStore.loadError));
 </script>
 
 <template>
   <ConfigErrorScreen v-if="hasConfigError" />
-  <div v-else-if="isPrintView">
-    <!-- Clean layout for print views -->
+  <div v-else-if="isPrintView || isLoginView">
+    <!-- Clean layout for print views and login (own background) -->
     <router-view />
   </div>
   <div v-else class="noise-bg min-h-screen" style="background: var(--color-void)">
