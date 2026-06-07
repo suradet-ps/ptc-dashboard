@@ -1,11 +1,13 @@
 // src/stores/dashboard.ts
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import {
   fetchAllActions,
   updateActionProgress,
   type ActionPatch,
 } from '@/services/supabase-actions';
+import { supabase } from '@/services/supabase';
 import { useConfigStore } from '@/stores/config';
 import type { ActionItem, DashboardSummary } from '@/types';
 
@@ -22,6 +24,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const error = ref<string | null>(null);
   const lastSync = ref<Date | null>(null);
   const currentUser = ref('PTC');
+
+  let realtimeChannel: RealtimeChannel | null = null;
 
   const summary = computed<DashboardSummary>(() => {
     const all = actions.value;
@@ -73,12 +77,33 @@ export const useDashboardStore = defineStore('dashboard', () => {
     actions.value.filter(a => a.status === 'delayed'),
   );
 
+  async function refetchActions(): Promise<void> {
+    actions.value = await fetchAllActions();
+    lastSync.value = new Date();
+  }
+
+  function ensureRealtimeSubscription(): void {
+    if (realtimeChannel) return;
+    realtimeChannel = supabase
+      .channel('ptc_action_progress_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'ptc_action_progress' },
+        () => {
+          refetchActions().catch((e: unknown) => {
+            error.value = toErrorMessage(e);
+          });
+        },
+      )
+      .subscribe();
+  }
+
   async function syncFromServer(): Promise<void> {
     loading.value = true;
     error.value = null;
     try {
-      actions.value = await fetchAllActions();
-      lastSync.value = new Date();
+      await refetchActions();
+      ensureRealtimeSubscription();
     } catch (e) {
       error.value = toErrorMessage(e);
     } finally {
@@ -86,12 +111,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   }
 
-  function applyServerUpdate(
-    action: ActionItem,
-    updated: Partial<Pick<ActionItem, 'lastUpdated' | 'updatedBy'>>,
-  ): void {
-    action.lastUpdated = updated.lastUpdated ?? new Date().toISOString();
-    action.updatedBy = updated.updatedBy ?? currentUser.value;
+  function teardownRealtime(): void {
+    if (realtimeChannel) {
+      void supabase.removeChannel(realtimeChannel);
+      realtimeChannel = null;
+    }
   }
 
   async function saveAction(
@@ -108,7 +132,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
     try {
       await updateActionProgress(id, patch, currentUser.value);
-      applyServerUpdate(action, {});
+      action.lastUpdated = new Date().toISOString();
+      action.updatedBy = currentUser.value;
     } catch (e) {
       Object.assign(action, previous);
       error.value = toErrorMessage(e);
@@ -130,5 +155,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     delayedActions,
     syncFromServer,
     saveAction,
+    teardownRealtime,
   };
 });
