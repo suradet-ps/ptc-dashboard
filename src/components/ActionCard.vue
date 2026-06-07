@@ -31,6 +31,17 @@ function onStatusChange(e: Event) {
   store.saveAction(props.action.id, { status: val });
 }
 
+function onCardKeydown(e: KeyboardEvent) {
+  // Don't hijack form-element keys
+  if (e.target instanceof HTMLElement && e.target.closest('select, input, textarea, button')) {
+    return;
+  }
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    emit('select', props.action);
+  }
+}
+
 const now = useNow();
 
 const timeAgo = computed(() => {
@@ -49,14 +60,18 @@ const statusDotColor = STATUS_DOT_COLORS;
 
 <template>
   <div
-    class="card cursor-pointer group"
+    class="card cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-signal)]"
     :class="{
       'glow-danger': action.status === 'blocked',
       'glow-warn': action.status === 'delayed',
     }"
     style="border-top-width: 3px"
     :style="`border-top: 3px solid ${recColor}; border-top-left-radius: 14px; border-top-right-radius: 14px;`"
+    role="button"
+    tabindex="0"
+    :aria-label="`เปิดรายละเอียดแผน ${action.id}: ${action.plan}, สถานะ ${cfg(action.status).label}, ความคืบหน้า ${action.progressPct} เปอร์เซ็นต์`"
     @click="emit('select', action)"
+    @keydown="onCardKeydown"
   >
     <div class="p-4">
       <!-- Top row: ID + title + spinner -->
@@ -111,10 +126,15 @@ const statusDotColor = STATUS_DOT_COLORS;
         </div>
 
         <!-- Status quick-change select -->
+        <label class="sr-only" :for="`card-status-${action.id}`">
+          เปลี่ยนสถานะของ {{ action.id }}
+        </label>
         <select
+          :id="`card-status-${action.id}`"
           :value="action.status"
           class="field flex-1 text-sm"
           style="padding: 6px 30px 6px 10px; font-size: 13px"
+          :aria-label="`เปลี่ยนสถานะของแผน ${action.id}`"
           @change="onStatusChange"
         >
           <option v-for="s in statusOptions" :key="s" :value="s">

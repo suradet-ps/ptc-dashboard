@@ -77,18 +77,36 @@ function formatThaiDate(dateStr: string) {
 
     <div class="card p-6 md:p-8 space-y-6">
       <div>
-        <label class="block text-sm font-bold mb-2">หัวข้อวาระ <span class="text-red-500">*</span></label>
-        <input v-model="form.title" type="text" class="field text-lg font-medium" placeholder="เช่น การเพิ่มยารายการใหม่เข้าบัญชียาโรงพยาบาล">
+        <label for="agenda-title" class="block text-sm font-bold mb-2">
+          หัวข้อวาระ <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="agenda-title"
+          v-model="form.title"
+          type="text"
+          class="field text-lg font-medium"
+          placeholder="เช่น การเพิ่มยารายการใหม่เข้าบัญชียาโรงพยาบาล"
+        >
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label class="block text-sm font-bold mb-2">ผู้เสนอ <span class="text-red-500">*</span></label>
-          <input v-model="form.proposer" type="text" class="field" placeholder="ชื่อ / ตำแหน่ง">
+          <label for="agenda-proposer" class="block text-sm font-bold mb-2">
+            ผู้เสนอ <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="agenda-proposer"
+            v-model="form.proposer"
+            type="text"
+            class="field"
+            placeholder="ชื่อ / ตำแหน่ง"
+          >
         </div>
         <div>
-          <label class="block text-sm font-bold mb-2">เข้าการประชุม <span class="text-red-500">*</span></label>
-          <select v-model="form.meetingId" class="field bg-white">
+          <label for="agenda-meeting" class="block text-sm font-bold mb-2">
+            เข้าการประชุม <span class="text-red-500">*</span>
+          </label>
+          <select id="agenda-meeting" v-model="form.meetingId" class="field bg-white">
             <option value="" disabled>
               -- เลือกการประชุม --
             </option>
@@ -103,8 +121,13 @@ function formatThaiDate(dateStr: string) {
       </div>
 
       <div>
-        <label class="block text-sm font-bold mb-2">รายละเอียด / เหตุผล</label>
-        <textarea v-model="form.description" class="field min-h-[150px] resize-y" placeholder="อธิบายรายละเอียดวาระ หรือเหตุผลที่ต้องนำเข้าที่ประชุม..." />
+        <label for="agenda-description" class="block text-sm font-bold mb-2">รายละเอียด / เหตุผล</label>
+        <textarea
+          id="agenda-description"
+          v-model="form.description"
+          class="field min-h-[150px] resize-y"
+          placeholder="อธิบายรายละเอียดวาระ หรือเหตุผลที่ต้องนำเข้าที่ประชุม..."
+        />
       </div>
 
       <div class="pt-4 flex justify-end">

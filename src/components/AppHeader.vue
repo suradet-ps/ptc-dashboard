@@ -45,7 +45,7 @@ function formatSync(d: Date | null) {
       </router-link>
 
       <!-- Navigation Links -->
-      <nav class="flex items-center gap-2 ml-4">
+      <nav class="flex items-center gap-2 ml-4" aria-label="เมนูหลัก">
         <router-link
           to="/"
           class="text-sm font-semibold transition-colors px-3 py-1.5 rounded-md text-[var(--color-dim)] hover:bg-[var(--color-surface)]"
@@ -84,6 +84,7 @@ function formatSync(d: Date | null) {
             ? 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-dim)] cursor-wait'
             : 'bg-white border-[var(--color-border)] text-[var(--color-text-sub)] hover:bg-[var(--color-void)] hover:border-[var(--color-dim)]'"
           :disabled="loading"
+          :aria-label="`ซิงค์ข้อมูลจากเซิร์ฟเวอร์, ${formatSync(lastSync)}`"
           @click="store.syncFromServer()"
         >
           <svg
@@ -95,6 +96,7 @@ function formatSync(d: Date | null) {
             stroke-width="2.5"
             stroke-linecap="round"
             stroke-linejoin="round"
+            aria-hidden="true"
           >
             <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
             <path d="M3 3v5h5" />

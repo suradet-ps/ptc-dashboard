@@ -252,6 +252,11 @@ const kpiCards = computed(() => [
         <div
           class="relative shrink-0 hidden sm:block"
           style="width: 140px; height: 140px"
+          role="progressbar"
+          :aria-valuenow="summary.overallPct"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-label="`ความคืบหน้ารวม ${summary.overallPct} เปอร์เซ็นต์`"
         >
           <svg viewBox="0 0 120 120" class="w-full h-full">
             <!-- Track arc (270°) -->
@@ -341,7 +346,15 @@ const kpiCards = computed(() => [
           </div>
 
           <!-- Ring gauge -->
-          <div class="relative shrink-0" style="width: 72px; height: 72px">
+          <div
+            class="relative shrink-0"
+            style="width: 72px; height: 72px"
+            role="progressbar"
+            :aria-valuenow="summary.totalActions > 0 ? Math.round((card.raw / summary.totalActions) * 100) : 0"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            :aria-label="`${card.label} ${card.raw} จาก ${summary.totalActions} แผน`"
+          >
             <svg viewBox="0 0 80 80" class="w-full h-full">
               <!-- Track arc (270°) -->
               <circle

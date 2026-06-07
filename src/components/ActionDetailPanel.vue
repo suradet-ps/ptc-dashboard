@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ref, watch } from 'vue';
+import { ref, useTemplateRef, watch } from 'vue';
+import { useFocusTrap } from '@/composables/use-focus-trap';
 import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
 import { ACTION_STATUSES, type ActionItem, type ActionStatus, STATUS_STYLES } from '@/types';
@@ -11,6 +12,9 @@ const store = useDashboardStore();
 const configStore = useConfigStore();
 const { statusCatalog } = storeToRefs(configStore);
 
+const panelRef = useTemplateRef<HTMLElement>('panel');
+const { activate, deactivate } = useFocusTrap(panelRef, { onEscape: () => emit('close') });
+
 const localStatus = ref<ActionStatus>('not_started');
 const localPct = ref(0);
 const localActual = ref('');
@@ -20,12 +24,16 @@ const localBlockers = ref('');
 watch(
   () => props.action,
   (a) => {
-    if (!a) return;
-    localStatus.value = a.status;
-    localPct.value = a.progressPct;
-    localActual.value = a.actualValue;
-    localNotes.value = a.notes;
-    localBlockers.value = a.blockers;
+    if (a) {
+      activate();
+      localStatus.value = a.status;
+      localPct.value = a.progressPct;
+      localActual.value = a.actualValue;
+      localNotes.value = a.notes;
+      localBlockers.value = a.blockers;
+    } else {
+      deactivate();
+    }
   },
   { immediate: true },
 );
@@ -58,6 +66,7 @@ const statusColors = STATUS_STYLES;
   <Transition name="modal-slide">
     <div
       v-if="action"
+      ref="panel"
       class="fixed right-0 top-0 bottom-0 z-50 flex flex-col"
       style="
         width: min(520px, 100vw);
@@ -65,6 +74,10 @@ const statusColors = STATUS_STYLES;
         border-left: 1px solid var(--color-border);
         box-shadow: -24px 0 60px rgba(30, 41, 16, 0.14);
       "
+      role="dialog"
+      aria-modal="true"
+      :aria-label="`รายละเอียดแผน ${action.id}: ${action.plan}`"
+      tabindex="-1"
     >
       <!-- Header -->
       <div
@@ -108,8 +121,10 @@ const statusColors = STATUS_STYLES;
               </span>
             </div>
             <button
+              type="button"
               class="btn-ghost"
               style="padding: 8px 12px; font-size: 16px"
+              aria-label="ปิดหน้าต่างรายละเอียด"
               @click="emit('close')"
             >
               ✕
@@ -309,12 +324,13 @@ const statusColors = STATUS_STYLES;
             <!-- Status -->
             <div>
               <label
+                for="edit-status"
                 class="text-sm font-semibold block mb-2"
                 style="color: var(--color-text-sub)"
               >
                 สถานะ
               </label>
-              <select v-model="localStatus" class="field">
+              <select id="edit-status" v-model="localStatus" class="field">
                 <option v-for="s in statusOptions" :key="s" :value="s">
                   {{ cfg(s).label }}
                 </option>
@@ -324,6 +340,7 @@ const statusColors = STATUS_STYLES;
             <!-- Progress -->
             <div>
               <label
+                for="edit-pct"
                 class="text-sm font-semibold flex items-center justify-between mb-2"
                 style="color: var(--color-text-sub)"
               >
@@ -357,17 +374,22 @@ const statusColors = STATUS_STYLES;
                   />
                 </div>
                 <input
+                  id="edit-pct"
                   v-model.number="localPct"
                   type="range"
                   min="0"
                   max="100"
                   step="5"
+                  :aria-valuenow="localPct"
+                  :aria-valuemin="0"
+                  :aria-valuemax="100"
+                  aria-label="ความคืบหน้า (เปอร์เซ็นต์)"
                   class="absolute inset-0 w-full cursor-pointer opacity-0"
                 >
               </div>
 
               <!-- Step markers -->
-              <div class="flex justify-between mt-1">
+              <div class="flex justify-between mt-1" aria-hidden="true">
                 <span
                   v-for="v in [0, 25, 50, 75, 100]"
                   :key="v"
@@ -380,6 +402,7 @@ const statusColors = STATUS_STYLES;
             <!-- Actual value -->
             <div>
               <label
+                for="edit-actual"
                 class="text-sm font-semibold block mb-2"
                 style="color: var(--color-text-sub)"
               >
@@ -391,6 +414,7 @@ const statusColors = STATUS_STYLES;
                   (Actual KPI Value)</span>
               </label>
               <input
+                id="edit-actual"
                 v-model="localActual"
                 type="text"
                 class="field"
@@ -401,12 +425,14 @@ const statusColors = STATUS_STYLES;
             <!-- Notes -->
             <div>
               <label
+                for="edit-notes"
                 class="text-sm font-semibold block mb-2"
                 style="color: var(--color-text-sub)"
               >
                 บันทึก / ความก้าวหน้า
               </label>
               <textarea
+                id="edit-notes"
                 v-model="localNotes"
                 class="field"
                 rows="3"
@@ -418,6 +444,7 @@ const statusColors = STATUS_STYLES;
             <!-- Blockers -->
             <div>
               <label
+                for="edit-blockers"
                 class="text-sm font-semibold block mb-2"
                 style="color: var(--color-danger)"
               >
@@ -428,6 +455,7 @@ const statusColors = STATUS_STYLES;
                 >(ถ้ามี)</span>
               </label>
               <textarea
+                id="edit-blockers"
                 v-model="localBlockers"
                 class="field"
                 rows="2"

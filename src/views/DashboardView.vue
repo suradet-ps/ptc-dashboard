@@ -51,11 +51,18 @@ onMounted(() => store.syncFromServer());
     <GanttChart />
 
     <!-- Tab navigation -->
-    <div class="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+    <div
+      class="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1"
+      role="tablist"
+      aria-label="ตัวกรองแผนตามข้อเสนอแนะ"
+    >
       <!-- All tab -->
       <button
         class="tab-pill"
         :class="{ active: activeTab === 'all' }"
+        role="tab"
+        :aria-selected="activeTab === 'all'"
+        :tabindex="activeTab === 'all' ? 0 : -1"
         @click="activeTab = 'all'"
       >
         ทั้งหมด
@@ -67,11 +74,15 @@ onMounted(() => store.syncFromServer());
         :key="rec.no"
         class="tab-pill flex items-center gap-2"
         :class="{ active: activeTab === `rec${rec.no}` }"
+        role="tab"
+        :aria-selected="activeTab === `rec${rec.no}`"
+        :tabindex="activeTab === `rec${rec.no}` ? 0 : -1"
         @click="setRecTab(rec.no)"
       >
         <span
           class="w-2.5 h-2.5 rounded-full shrink-0"
           :style="`background: ${recColor(rec.no)};`"
+          aria-hidden="true"
         />
         ข้อที่ {{ rec.no }}
         <span class="num text-xs opacity-60 font-bold">{{ rec.pct }}%</span>
@@ -81,6 +92,9 @@ onMounted(() => store.syncFromServer());
       <button
         class="tab-pill flex items-center gap-2"
         :class="{ active: activeTab === 'alerts' }"
+        role="tab"
+        :aria-selected="activeTab === 'alerts'"
+        :tabindex="activeTab === 'alerts' ? 0 : -1"
         @click="activeTab = 'alerts'"
       >
         <span

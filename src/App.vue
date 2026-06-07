@@ -73,10 +73,21 @@ const hasConfigError = computed(() => Boolean(configStore.loadError));
       "
     />
 
+    <!-- Skip to main content (visible on focus) -->
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg"
+      style="background: var(--color-signal); color: var(--color-void); font-weight: 700"
+    >
+      ข้ามไปยังเนื้อหาหลัก
+    </a>
+
     <!-- Content -->
     <div class="relative z-10">
       <AppHeader />
-      <router-view />
+      <main id="main-content" tabindex="-1">
+        <router-view />
+      </main>
     </div>
   </div>
   <ToastHost />

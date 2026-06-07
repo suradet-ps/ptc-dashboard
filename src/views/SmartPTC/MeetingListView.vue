@@ -91,12 +91,18 @@ function formatThaiDate(dateStr: string) {
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label class="block text-sm font-medium mb-1">หัวข้อการประชุม</label>
-            <input v-model="newMeeting.title" type="text" class="field" placeholder="เช่น ประจำเดือนมกราคม 2568">
+            <label for="new-meeting-title" class="block text-sm font-medium mb-1">หัวข้อการประชุม</label>
+            <input
+              id="new-meeting-title"
+              v-model="newMeeting.title"
+              type="text"
+              class="field"
+              placeholder="เช่น ประจำเดือนมกราคม 2568"
+            >
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">วันที่จัดการประชุม</label>
-            <input v-model="newMeeting.date" type="date" class="field">
+            <label for="new-meeting-date" class="block text-sm font-medium mb-1">วันที่จัดการประชุม</label>
+            <input id="new-meeting-date" v-model="newMeeting.date" type="date" class="field">
           </div>
         </div>
         <div class="flex gap-2">
@@ -116,7 +122,17 @@ function formatThaiDate(dateStr: string) {
           การประชุมที่กำลังดำเนินการ (Active)
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div v-for="m in activeMeetings" :key="m.id" class="card p-5 cursor-pointer hover:border-[var(--color-signal)]" @click="router.push(`/smart-ptc/meeting/${m.id}`)">
+          <div
+            v-for="m in activeMeetings"
+            :key="m.id"
+            class="card p-5 cursor-pointer hover:border-[var(--color-signal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-signal)]"
+            role="button"
+            tabindex="0"
+            :aria-label="`เปิดการประชุม ${m.title}, วันที่ ${formatThaiDate(m.date)}`"
+            @click="router.push(`/smart-ptc/meeting/${m.id}`)"
+            @keydown.enter="router.push(`/smart-ptc/meeting/${m.id}`)"
+            @keydown.space.prevent="router.push(`/smart-ptc/meeting/${m.id}`)"
+          >
             <h3 class="font-bold text-lg text-[var(--color-signal)]">
               {{ m.title }}
             </h3>
@@ -136,7 +152,17 @@ function formatThaiDate(dateStr: string) {
           ไม่มีกำหนดการประชุม
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div v-for="m in upcomingMeetings" :key="m.id" class="card p-5 cursor-pointer" @click="router.push(`/smart-ptc/meeting/${m.id}`)">
+          <div
+            v-for="m in upcomingMeetings"
+            :key="m.id"
+            class="card p-5 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-signal)]"
+            role="button"
+            tabindex="0"
+            :aria-label="`เปิดการประชุม ${m.title}, วันที่ ${formatThaiDate(m.date)}`"
+            @click="router.push(`/smart-ptc/meeting/${m.id}`)"
+            @keydown.enter="router.push(`/smart-ptc/meeting/${m.id}`)"
+            @keydown.space.prevent="router.push(`/smart-ptc/meeting/${m.id}`)"
+          >
             <h3 class="font-bold">
               {{ m.title }}
             </h3>
