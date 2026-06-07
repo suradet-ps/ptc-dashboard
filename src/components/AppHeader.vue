@@ -31,8 +31,8 @@ function formatDate(d: Date) {
   });
 }
 function formatSync(d: Date | null) {
-  if (!d) return 'ยังไม่ได้ sync';
-  return `sync ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
+  if (!d) return 'ยังไม่ได้ซิงค์';
+  return `ซิงค์ ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
 }
 </script>
 

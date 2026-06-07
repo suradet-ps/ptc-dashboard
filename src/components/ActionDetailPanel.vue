@@ -501,7 +501,7 @@ const statusColors: Record<ActionStatus, { bg: string; text: string; border: str
             </svg>
             กำลังบันทึก...
           </span>
-          <span v-else>บันทึก → Google Sheets</span>
+          <span v-else>บันทึก</span>
         </button>
       </div>
     </div>

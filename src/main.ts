@@ -14,15 +14,9 @@ async function bootstrap() {
   const config = useConfigStore();
   try {
     await config.load();
-    if (config.error) {
-      console.error('[ptc-dashboard] config load failed:', config.error);
-    } else {
-      console.info(
-        `[ptc-dashboard] config loaded: ${config.recommendations.length} recs, ${config.statusCatalogRows.length} statuses, ${config.fiscalMonthRows.length} months`,
-      );
-    }
-  } catch (e) {
-    console.error('[ptc-dashboard] config load threw:', e);
+  } catch {
+    // Error is already stored on the config store; continue to mount
+    // so the user can see the error UI instead of a blank screen.
   }
 
   app.use(router).mount('#app');

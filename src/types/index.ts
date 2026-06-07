@@ -29,7 +29,7 @@ export type ActionItem = {
   owners: string[];
   reportCycle: string;
   haRef: string; // HA II-6 reference
-  // runtime fields (from GSheet)
+  // runtime fields (from Supabase ptc_action_progress)
   status: ActionStatus;
   progressPct: number; // 0-100
   actualValue: string; // actual KPI value recorded
@@ -64,16 +64,5 @@ export type UpdatePayload = {
   actualValue: string;
   notes: string;
   blockers: string;
-  updatedBy: string;
-};
-
-export type GSheetRow = {
-  id: string;
-  status: string;
-  progressPct: string;
-  actualValue: string;
-  notes: string;
-  blockers: string;
-  lastUpdated: string;
   updatedBy: string;
 };
