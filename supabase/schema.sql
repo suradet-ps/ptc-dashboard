@@ -17,8 +17,12 @@ drop table if exists public.ptc_actions cascade;
 drop table if exists public.ptc_recommendations cascade;
 drop table if exists public.ptc_status_catalog cascade;
 drop table if exists public.ptc_fiscal_months cascade;
+drop table if exists public.ptc_profiles cascade;
 
 drop function if exists public.set_updated_at() cascade;
+drop function if exists public.set_action_progress_audit() cascade;
+drop function if exists public.handle_new_user() cascade;
+drop type  if exists public.ptc_user_role cascade;
 
 
 -- ─────────────────────────────────────────────────────────────
@@ -79,12 +83,16 @@ create table public.ptc_action_progress (
   notes         text     not null default '',
   blockers      text     not null default '',
   last_updated  timestamptz,
-  updated_by    text     not null default 'PTC'
+  updated_by    text     not null default 'system'
 );
 comment on table public.ptc_action_progress is
   'Runtime state of each action item (status, progress, notes, blockers, audit fields).';
 comment on column public.ptc_action_progress.status is
   'Action lifecycle status. See public.ptc_status_catalog for label/colors.';
+comment on column public.ptc_action_progress.last_updated is
+  'Auto-populated by trigger on UPDATE (auth.uid() / auth.jwt()).';
+comment on column public.ptc_action_progress.updated_by is
+  'Email of authenticated user who last updated the row. Auto-populated by trigger.';
 
 
 -- 2.4 Meetings (Smart PTC)
@@ -142,6 +150,30 @@ comment on table public.ptc_fiscal_months is
   'Thai fiscal year month labels. month_no=1 corresponds to October.';
 
 
+-- 2.8 User role enum (for ptc_profiles.role)
+create type public.ptc_user_role as enum ('viewer', 'editor', 'admin');
+
+
+-- 2.9 User profiles (1:1 with auth.users)
+--     Created automatically on first sign-in via auth.users trigger.
+--     The first user to sign in becomes 'admin' so the system bootstraps
+--     without manual SQL. Subsequent users default to 'editor'.
+create table public.ptc_profiles (
+  user_id       uuid primary key references auth.users(id) on delete cascade,
+  email         text    not null,
+  display_name  text    not null default '',
+  role          public.ptc_user_role not null default 'editor',
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+comment on table public.ptc_profiles is
+  'Application-level user profile. 1:1 with auth.users. Drives role-based authorization and display_name for audit trails.';
+comment on column public.ptc_profiles.role is
+  'Application role: viewer (read-only), editor (read+write runtime), admin (full CRUD including master/config).';
+comment on column public.ptc_profiles.display_name is
+  'Optional human-readable name shown in audit columns and header. Falls back to email when empty.';
+
+
 -- ─────────────────────────────────────────────────────────────
 -- 3. Indexes
 -- ─────────────────────────────────────────────────────────────
@@ -153,7 +185,7 @@ create index idx_ptc_agendas_meeting       on public.ptc_agendas        (meeting
 
 
 -- ─────────────────────────────────────────────────────────────
--- 4. Triggers — auto-update updated_at on row UPDATE
+-- 4. Triggers — auto-update audit fields on row UPDATE
 -- ─────────────────────────────────────────────────────────────
 create or replace function public.set_updated_at()
 returns trigger
@@ -172,6 +204,68 @@ create trigger trg_ptc_meetings_set_updated_at
 create trigger trg_ptc_agendas_set_updated_at
   before update on public.ptc_agendas
   for each row execute function public.set_updated_at();
+
+create trigger trg_ptc_profiles_set_updated_at
+  before update on public.ptc_profiles
+  for each row execute function public.set_updated_at();
+
+
+-- 4.1 Action progress audit — auto-fill last_updated + updated_by
+--     Pulls identity from auth.jwt() so callers cannot spoof the audit trail.
+create or replace function public.set_action_progress_audit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  jwt_email text;
+begin
+  jwt_email := auth.jwt() ->> 'email';
+  if jwt_email is null or jwt_email = '' then
+    raise exception 'ptc_action_progress: writer must be authenticated (auth.jwt().email is empty)';
+  end if;
+  new.last_updated := now();
+  new.updated_by   := jwt_email;
+  return new;
+end;
+$$;
+
+create trigger trg_ptc_action_progress_audit
+  before insert or update on public.ptc_action_progress
+  for each row execute function public.set_action_progress_audit();
+
+
+-- 4.2 Bootstrap — create a profile row when a new auth.users row appears.
+--     First-ever user becomes 'admin' so the system bootstraps without
+--     manual SQL. Later users default to 'editor'.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  user_count integer;
+begin
+  select count(*) into user_count from public.ptc_profiles;
+  insert into public.ptc_profiles (user_id, email, display_name, role)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1)),
+    case when user_count = 0 then 'admin'::public.ptc_user_role
+         else 'editor'::public.ptc_user_role
+    end
+  )
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+create trigger trg_on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
 
 
 -- ─────────────────────────────────────────────────────────────
@@ -450,6 +544,19 @@ begin
     execute 'alter publication supabase_realtime add table public.ptc_action_progress';
   end if;
 end $$;
+
+
+-- ═════════════════════════════════════════════════════════════
+-- 7b. View — flatten progress updates with author display name
+-- ═════════════════════════════════════════════════════════════
+create or replace view public.ptc_v_action_progress_with_author as
+select
+  p.*,
+  pr.display_name as updated_by_display_name
+from public.ptc_action_progress p
+left join public.ptc_profiles pr on pr.email = p.updated_by;
+comment on view public.ptc_v_action_progress_with_author is
+  'ptc_action_progress joined to ptc_profiles so UI can render display_name from updated_by email.';
 
 
 -- ═════════════════════════════════════════════════════════════

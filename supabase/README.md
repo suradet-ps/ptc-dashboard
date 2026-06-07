@@ -6,29 +6,32 @@ SQL files for bootstrapping and configuring a Supabase project to support the PT
 
 | File | Description | When to run |
 |---|---|---|
-| `schema.sql` | DDL: tables / views / indexes / triggers + seed data | Once at first install (re-runnable) |
-| `rls.sql` | Row Level Security policies | After `schema.sql` (re-runnable) |
+| `schema.sql` | DDL: tables / views / indexes / triggers + seed data + auth helpers | Once at first install (re-runnable) |
+| `rls.sql` | Row Level Security policies + role helpers | After `schema.sql` (re-runnable) |
 
 ## Schema overview
 
 All tables use the `ptc_` prefix to keep them isolated from other objects in the project.
 
-### Master / config (read-only for `anon`)
+### Master / config (read-only outside `admin`)
 
 - **`ptc_recommendations`** (3 rows) — recommendations R1/R2/R3 (title, short_title, color_key, hex_color)
 - **`ptc_actions`** (12 rows) — action plans R1A1..R3A4 (plan, sub_items[], timeline, kpis[], target, owners[], report_cycle, ha_ref)
 - **`ptc_status_catalog`** (5 rows) — status configuration (label, tailwind classes, hex)
 - **`ptc_fiscal_months`** (12 rows) — fiscal year months (month_no 1–12 → Thai label + calendar_month)
 
-### Runtime (`anon` can write)
+### Runtime (read by anyone, written by `editor`+)
 
 - **`ptc_action_progress`** (12 rows, 1:1 with `ptc_actions`) — runtime status (status, progress_pct, actual_value, notes, blockers, last_updated, updated_by)
 - **`ptc_meetings`** — PTC meetings (meeting_date, title, status, report_url)
 - **`ptc_agendas`** — meeting agenda items (FK → `ptc_meetings`)
 
-### View
+### Auth & identity
 
+- **`ptc_user_role`** — enum: `viewer` | `editor` | `admin`
+- **`ptc_profiles`** (1:1 with `auth.users`) — email, display_name, role. Auto-created on first sign-in via a trigger on `auth.users`. The first user to sign in becomes `admin` so the system bootstraps without manual SQL.
 - **`ptc_v_actions_full`** — join of actions + progress + recommendations, fetched in a single query
+- **`ptc_v_action_progress_with_author`** — progress rows joined to profiles so the UI can render `display_name` from the audit `updated_by` email
 
 ## Installation
 
@@ -38,7 +41,18 @@ All tables use the `ptc_` prefix to keep them isolated from other objects in the
 2. Choose a region close to your users (e.g. Singapore)
 3. Set a database password and save it securely
 
-### 2. Run `schema.sql`
+### 2. Enable Magic Link sign-in (Auth providers)
+
+In the Supabase Dashboard:
+
+- **Authentication → Providers → Email** — enable Email provider
+- **Authentication → Sign In / Up → User Signups** — leave **Enable signups** ON if you want open invitation; turn it OFF to onboard users manually via `auth.users.insert`
+- **Authentication → Email Templates** — customize the Magic Link template with your hospital logo / Thai text
+- Copy the **Site URL** into **Authentication → URL Configuration** and add `http://localhost:5173` to **Additional Redirect URLs** for local dev
+
+The dashboard's sign-in form calls `supabase.auth.signInWithOtp({ email })`, which emails a one-click login link.
+
+### 3. Run `schema.sql`
 
 Open **SQL Editor** in the Supabase Dashboard → **New query** → paste the contents of `schema.sql` → **Run**
 
@@ -48,15 +62,30 @@ Or via `psql`:
 psql "postgresql://postgres:PASSWORD@db.PROJECT_REF.supabase.co:5432/postgres" -f supabase/schema.sql
 ```
 
-`schema.sql` starts with `drop table ... cascade`, so it is re-runnable — the data will be wiped and re-seeded.
+`schema.sql` starts with `drop table ... cascade` plus a `drop function` / `drop type` block, so it is re-runnable — the data will be wiped and re-seeded. **Take a backup first if you have production data.**
 
-### 3. Run `rls.sql`
+This single script now also:
+
+- Creates the `ptc_user_role` enum and `ptc_profiles` table
+- Installs a BEFORE INSERT/UPDATE trigger on `ptc_action_progress` that auto-fills `last_updated = now()` and `updated_by = auth.jwt() ->> 'email'`
+- Installs an AFTER INSERT trigger on `auth.users` that auto-creates a `ptc_profiles` row (first user = `admin`, others = `editor`)
+- Creates the `ptc_v_action_progress_with_author` view
+
+### 4. Run `rls.sql`
 
 Open **SQL Editor** → **New query** → paste the contents of `rls.sql` → **Run**
 
-The file cleans up old policies first, then recreates them (also re-runnable).
+The file cleans up old policies and helper functions first, then recreates them (also re-runnable). This script:
 
-### 4. Verify
+- Enables RLS on all `ptc_*` tables
+- Drops the legacy anon-write policies
+- Installs role-helper functions (`current_user_role`, `is_admin`, `is_editor_or_above`) that read `ptc_profiles` via `SECURITY DEFINER` so the policies don't recurse
+- Grants **SELECT** to `anon` and `authenticated` on every public table
+- Grants **INSERT/UPDATE on runtime tables** to `editor` and `admin`; **DELETE** to `admin` only
+- Grants **full CRUD on master/config tables** to `admin` only
+- Allows users to update their own profile's `display_name` (but not their own role) and admins to manage all profiles
+
+### 5. Verify
 
 In the SQL Editor:
 
@@ -66,7 +95,8 @@ select 'ptc_recommendations' as t, count(*) from ptc_recommendations
 union all select 'ptc_actions',         count(*) from ptc_actions
 union all select 'ptc_action_progress', count(*) from ptc_action_progress
 union all select 'ptc_status_catalog',  count(*) from ptc_status_catalog
-union all select 'ptc_fiscal_months',   count(*) from ptc_fiscal_months;
+union all select 'ptc_fiscal_months',   count(*) from ptc_fiscal_months
+union all select 'ptc_profiles',         count(*) from ptc_profiles;
 
 -- Inspect RLS policies
 select tablename, policyname, roles, cmd
@@ -74,13 +104,18 @@ from pg_policies
 where schemaname = 'public'
 order by tablename, policyname;
 
--- Smoke test the view
+-- Confirm the audit trigger exists
+select tgname, tgrelid::regclass
+from pg_trigger
+where tgname in ('trg_ptc_action_progress_audit', 'trg_on_auth_user_created', 'trg_ptc_profiles_set_updated_at');
+
+-- Smoke test the views
 select id, rec_no, plan, status, progress_pct
 from ptc_v_actions_full
 order by rec_no, action_no;
 ```
 
-Expected row counts:
+Expected row counts after a fresh `schema.sql` run:
 
 | Table | Row count |
 |---|---|
@@ -89,16 +124,33 @@ Expected row counts:
 | ptc_action_progress | 12 |
 | ptc_status_catalog | 5 |
 | ptc_fiscal_months | 12 |
+| ptc_profiles | 0 (populated as users sign in) |
+
+### 6. First sign-in (bootstrap)
+
+1. Open the dashboard in a browser
+2. Click **เข้าสู่ระบบ** in the header
+3. Enter the email of the person who will be the admin
+4. Check inbox → click the magic link
+5. The dashboard reloads, the profile is created with `role = admin` (because they're the first user)
+
+Subsequent users default to `editor`. To promote a user to `admin`:
+
+```sql
+update ptc_profiles set role = 'admin' where email = 'someone@hospital.go.th';
+```
 
 ## Access model
 
-| Role | SELECT | INSERT / UPDATE / DELETE |
-|---|---|---|
-| `anon` (public) | All tables | Runtime only: `ptc_action_progress`, `ptc_meetings`, `ptc_agendas` |
-| `authenticated` (login) | All tables | All tables (including master/config) |
-| `service_role` (backend) | All tables | All tables (bypasses RLS) |
+| Role | SELECT | INSERT / UPDATE | DELETE |
+|---|---|---|---|
+| `anon` (public, no login) | All tables | — | — |
+| `viewer` (authenticated) | All tables | — | — |
+| `editor` (authenticated) | All tables | Runtime: `ptc_action_progress`, `ptc_meetings`, `ptc_agendas` | — |
+| `admin` (authenticated) | All tables | All tables (including master/config + profiles) | All tables |
+| `service_role` (backend only) | All tables | All tables (bypasses RLS) | All tables |
 
-This mirrors the legacy Google Apps Script model (public read + public write on runtime) while preventing `anon` from modifying master data — for example, renaming a recommendation or editing status configuration.
+The audit columns `last_updated` and `updated_by` on `ptc_action_progress` are written by a `SECURITY DEFINER` trigger that pulls identity from `auth.jwt()` — clients cannot spoof the author of an update.
 
 ## Realtime (live multi-user sync)
 
@@ -150,11 +202,19 @@ select * from ptc_status_catalog order by sort_order;
 
 -- Fiscal month configuration
 select * from ptc_fiscal_months order by month_no;
+
+-- Audit trail: who updated what, when
+select action_id, updated_by, last_updated, status, progress_pct
+from ptc_v_action_progress_with_author
+order by last_updated desc;
 ```
 
 ## Adding actions / editing the plan
 
-To add a new action or modify an existing plan, edit the tables directly (requires logging in as `authenticated`):
+Editing master data (e.g. adding a new action, changing a KPI, renaming a recommendation) requires the `admin` role. Sign in as an admin, then either:
+
+- Use the Supabase Dashboard **Table Editor** (faster for one-off edits)
+- Or run SQL in the SQL Editor:
 
 ```sql
 -- Add progress for a new action (must insert into both actions and action_progress)
@@ -163,10 +223,11 @@ values ('R1A5', 1, 5, 'New plan', 'Oct 68 – Mar 69', 1, 6, '100%', 'PTC report
 
 insert into ptc_action_progress (action_id) values ('R1A5');
 
--- Update an action status (anon can write this)
+-- Update an action status (also possible as editor through the dashboard UI)
 update ptc_action_progress
-set status = 'in_progress', progress_pct = 50, last_updated = now(), updated_by = 'PTC'
+set status = 'in_progress', progress_pct = 50
 where action_id = 'R1A1';
+-- last_updated + updated_by are filled in by the audit trigger; do not set them by hand.
 ```
 
 ## Migration from the legacy Google Sheets backend

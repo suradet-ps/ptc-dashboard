@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { ref } from 'vue';
 
+import { useAuth } from '@/composables/use-auth';
 import { useNow } from '@/composables/use-now';
 import { useDashboardStore } from '@/stores/dashboard';
 
@@ -8,6 +10,35 @@ const store = useDashboardStore();
 const { loading, lastSync, error, summary } = storeToRefs(store);
 
 const now = useNow();
+const {
+  profile,
+  isAuthenticated,
+  isEditorOrAbove,
+  loading: authLoading,
+  magicLinkSent,
+  error: authError,
+  signInWithMagicLink,
+  signOut,
+} = useAuth();
+
+const showSignIn = ref(false);
+const emailInput = ref('');
+
+async function handleSignIn() {
+  const email = emailInput.value.trim();
+  if (!email) return;
+  await signInWithMagicLink(email);
+}
+
+function handleSignOut() {
+  void signOut();
+}
+
+const roleLabel = (role: string) => {
+  if (role === 'admin') return 'ผู้ดูแล';
+  if (role === 'editor') return 'ผู้แก้ไข';
+  return 'ผู้อ่าน';
+};
 
 function formatTime(d: Date) {
   return d.toLocaleTimeString('th-TH', {
@@ -112,6 +143,87 @@ function formatSync(d: Date | null) {
           class="w-2.5 h-2.5 rounded-full animate-ping bg-[var(--color-danger)]"
           :title="error"
         />
+
+        <!-- Auth: signed-in user OR sign-in form -->
+        <div v-if="isAuthenticated && profile" class="flex items-center gap-2">
+          <div class="hidden md:flex flex-col items-end leading-tight">
+            <span class="text-xs font-semibold" style="color: var(--color-text)">
+              {{ profile.displayName }}
+            </span>
+            <span
+              class="text-[0.65rem] font-bold uppercase tracking-wide"
+              :style="`color: ${
+                isEditorOrAbove ? 'var(--color-signal)' : 'var(--color-muted)'
+              };`"
+            >
+              {{ roleLabel(profile.role) }}
+            </span>
+          </div>
+          <button
+            type="button"
+            class="text-xs font-semibold px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-dim)] hover:bg-[var(--color-surface)]"
+            :disabled="authLoading"
+            :aria-label="`ออกจากระบบ (${profile.email})`"
+            @click="handleSignOut"
+          >
+            ออกจากระบบ
+          </button>
+        </div>
+
+        <div v-else>
+          <button
+            v-if="!showSignIn"
+            type="button"
+            class="text-xs font-semibold px-3 py-1.5 rounded-full border border-[var(--color-signal)] text-[var(--color-signal)] hover:bg-[var(--color-signal)] hover:text-white transition-colors"
+            aria-label="เข้าสู่ระบบ"
+            @click="showSignIn = true"
+          >
+            เข้าสู่ระบบ
+          </button>
+          <form
+            v-else
+            class="flex items-center gap-2"
+            @submit.prevent="handleSignIn"
+          >
+            <label for="signin-email" class="sr-only">อีเมลสำหรับรับลิงก์เข้าสู่ระบบ</label>
+            <input
+              id="signin-email"
+              v-model="emailInput"
+              type="email"
+              required
+              class="text-xs px-2 py-1.5 rounded border border-[var(--color-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-signal)]"
+              style="width: 200px"
+              placeholder="email@hospital.go.th"
+            >
+            <button
+              type="submit"
+              class="text-xs font-semibold px-3 py-1.5 rounded-full border border-[var(--color-signal)] bg-[var(--color-signal)] text-white hover:opacity-90 disabled:opacity-50"
+              :disabled="authLoading"
+            >
+              {{ authLoading ? 'กำลังส่ง...' : 'ส่งลิงก์' }}
+            </button>
+            <button
+              type="button"
+              class="text-xs text-[var(--color-muted)] hover:text-[var(--color-dim)]"
+              :disabled="authLoading"
+              aria-label="ยกเลิกการเข้าสู่ระบบ"
+              @click="showSignIn = false"
+            >
+              ✕
+            </button>
+          </form>
+        </div>
+
+        <!-- Sign-in feedback (toast-like inline messages) -->
+        <div
+          v-if="!isAuthenticated && (magicLinkSent || authError)"
+          class="sr-only"
+          role="status"
+          aria-live="polite"
+        >
+          <span v-if="magicLinkSent">ส่งลิงก์เข้าสู่ระบบไปยังอีเมลแล้ว กรุณาตรวจสอบ inbox</span>
+          <span v-else-if="authError">{{ authError }}</span>
+        </div>
 
         <!-- Clock -->
           <div class="text-right hidden sm:block pl-3 border-l border-[var(--color-border)]">

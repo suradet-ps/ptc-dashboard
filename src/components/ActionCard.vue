@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useNow } from '@/composables/use-now';
+import { toMessage, useToasts } from '@/composables/use-toast';
 import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
 import {
@@ -17,6 +18,7 @@ const emit = defineEmits<{ select: [action: ActionItem] }>();
 
 const store = useDashboardStore();
 const configStore = useConfigStore();
+const { push: pushToast } = useToasts();
 const { statusCatalog } = storeToRefs(configStore);
 const isSaving = computed(() => store.saving === props.action.id);
 
@@ -26,9 +28,15 @@ function cfg(s: ActionStatus) {
   return statusCatalog.value[s];
 }
 
-function onStatusChange(e: Event) {
+async function onStatusChange(e: Event) {
   const val = (e.target as HTMLSelectElement).value as ActionStatus;
-  store.saveAction(props.action.id, { status: val });
+  try {
+    await store.saveAction(props.action.id, { status: val });
+  } catch (err) {
+    pushToast({ type: 'error', message: toMessage(err) });
+    // Revert the <select> back to the canonical store value
+    (e.target as HTMLSelectElement).value = props.action.status;
+  }
 }
 
 function onCardKeydown(e: KeyboardEvent) {

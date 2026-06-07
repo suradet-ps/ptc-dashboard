@@ -47,7 +47,7 @@ function dbToActionItem(row: ActionRow): ActionItem {
     notes: row.notes ?? '',
     blockers: row.blockers ?? '',
     lastUpdated: row.last_updated ?? '',
-    updatedBy: row.updated_by ?? 'PTC',
+    updatedBy: row.updated_by ?? '',
   };
 }
 
@@ -67,26 +67,26 @@ export type ActionPatch = Pick<
   'status' | 'progressPct' | 'actualValue' | 'notes' | 'blockers'
 >;
 
-function toDbPatch(patch: Partial<ActionPatch>, updatedBy: string) {
+function toDbPatch(patch: Partial<ActionPatch>) {
   return {
     status: patch.status,
     progress_pct: patch.progressPct,
     actual_value: patch.actualValue,
     notes: patch.notes,
     blockers: patch.blockers,
-    last_updated: new Date().toISOString(),
-    updated_by: updatedBy,
+    // last_updated + updated_by are filled in by a BEFORE INSERT/UPDATE
+    // trigger in supabase/schema.sql using auth.jwt() so the audit
+    // trail cannot be spoofed by the client.
   };
 }
 
 export async function updateActionProgress(
   actionId: string,
   patch: Partial<ActionPatch>,
-  updatedBy: string,
 ): Promise<void> {
   const { error } = await supabase
     .from('ptc_action_progress')
-    .update(toDbPatch(patch, updatedBy))
+    .update(toDbPatch(patch))
     .eq('action_id', actionId);
 
   if (error) throw new Error(error.message);

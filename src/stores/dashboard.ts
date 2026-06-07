@@ -24,7 +24,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const saving = ref<string | null>(null);
   const error = ref<string | null>(null);
   const lastSync = ref<Date | null>(null);
-  const currentUser = ref('PTC');
 
   let realtimeChannel: RealtimeChannel | null = null;
   // Echo-suppression: ignore realtime payloads for the action the current
@@ -156,6 +155,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
     const action = actions.value.find((a) => a.id === id);
     if (!action) return;
 
+    // RLS: ptc_action_progress is editor+ only. The DB will reject
+    // unauthenticated writes with a 401/403; surface a clear error
+    // up-front so the UI can show a sign-in prompt.
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      const e = new Error('ต้องเข้าสู่ระบบก่อนจึงจะบันทึกได้');
+      error.value = e.message;
+      throw e;
+    }
+
     const previous = { ...action };
     Object.assign(action, patch);
     saving.value = id;
@@ -163,13 +172,27 @@ export const useDashboardStore = defineStore('dashboard', () => {
     recentWrites.set(id, Date.now());
 
     try {
-      await updateActionProgress(id, patch, currentUser.value);
-      action.lastUpdated = new Date().toISOString();
-      action.updatedBy = currentUser.value;
+      await updateActionProgress(id, patch);
+      // last_updated + updated_by are written by the DB trigger from
+      // auth.jwt(). Refetch this single row to pick up the canonical
+      // values instead of guessing them client-side.
+      const { data: refreshed, error: refreshErr } = await supabase
+        .from('ptc_action_progress')
+        .select('last_updated, updated_by')
+        .eq('action_id', id)
+        .single();
+      if (!refreshErr && refreshed) {
+        action.lastUpdated = refreshed.last_updated ?? action.lastUpdated;
+        action.updatedBy = refreshed.updated_by ?? sessionData.session.user.email ?? '';
+      } else {
+        action.lastUpdated = new Date().toISOString();
+        action.updatedBy = sessionData.session.user.email ?? '';
+      }
     } catch (e) {
       Object.assign(action, previous);
       recentWrites.delete(id);
       error.value = toErrorMessage(e);
+      throw e;
     } finally {
       saving.value = null;
     }
@@ -185,7 +208,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     saving,
     error,
     lastSync,
-    currentUser,
     summary,
     byRecommendation,
     blockedActions,

@@ -118,3 +118,14 @@ export type DashboardSummary = {
   notStarted: number;
   overallPct: number;
 };
+
+export type UserRole = 'viewer' | 'editor' | 'admin';
+
+export const USER_ROLES: readonly UserRole[] = ['viewer', 'editor', 'admin'] as const;
+
+export type UserProfile = {
+  userId: string;
+  email: string;
+  displayName: string;
+  role: UserRole;
+};
