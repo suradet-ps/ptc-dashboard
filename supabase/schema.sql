@@ -212,6 +212,9 @@ create trigger trg_ptc_profiles_set_updated_at
 
 -- 4.1 Action progress audit — auto-fill last_updated + updated_by
 --     Pulls identity from auth.jwt() so callers cannot spoof the audit trail.
+--     Bypassed for the postgres / service_role context (SQL Editor, migrations,
+--     edge functions) so seeds and admin scripts can write without a JWT — the
+--     column defaults ('system' for updated_by, NULL for last_updated) fill in.
 create or replace function public.set_action_progress_audit()
 returns trigger
 language plpgsql
@@ -220,7 +223,17 @@ set search_path = public
 as $$
 declare
   jwt_email text;
+  jwt_role  text;
 begin
+  jwt_role := auth.role();
+  -- Trusted write contexts: leave the row unchanged so column defaults win.
+  --   * NULL role  → postgres / SQL Editor (no Supabase JWT in session)
+  --   * 'service_role' → server-side admin (migrations, edge functions)
+  if jwt_role is null or jwt_role = 'service_role' then
+    return new;
+  end if;
+
+  -- For 'anon' and 'authenticated' writers, require a real identity.
   jwt_email := auth.jwt() ->> 'email';
   if jwt_email is null or jwt_email = '' then
     raise exception 'ptc_action_progress: writer must be authenticated (auth.jwt().email is empty)';
@@ -495,10 +508,16 @@ insert into public.ptc_actions
 
 
 -- 6.3 Action progress (12 rows, one per action, default state)
-insert into public.ptc_action_progress (action_id) values
-  ('R1A1'),('R1A2'),('R1A3'),('R1A4'),
-  ('R2A1'),('R2A2'),('R2A3'),('R2A4'),
-  ('R3A1'),('R3A2'),('R3A3'),('R3A4');
+--     Audit fields are explicitly set so the seed origin is clear regardless
+--     of the trigger behavior (the trigger would write 'system' via the
+--     column defaults, but spelling it out is more honest).
+insert into public.ptc_action_progress (action_id, last_updated, updated_by) values
+  ('R1A1', now(), 'system'),('R1A2', now(), 'system'),
+  ('R1A3', now(), 'system'),('R1A4', now(), 'system'),
+  ('R2A1', now(), 'system'),('R2A2', now(), 'system'),
+  ('R2A3', now(), 'system'),('R2A4', now(), 'system'),
+  ('R3A1', now(), 'system'),('R3A2', now(), 'system'),
+  ('R3A3', now(), 'system'),('R3A4', now(), 'system');
 
 
 -- 6.4 Status catalog (5 rows)
