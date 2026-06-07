@@ -1,88 +1,88 @@
 # Supabase — PTC Monitor Dashboard
 
-ไฟล์ SQL สำหรับ bootstrap และตั้งค่า Supabase project ให้รองรับ PTC Dashboard
+SQL files for bootstrapping and configuring a Supabase project to support the PTC Dashboard.
 
-## ไฟล์ในโฟลเดอร์นี้
+## Files in this folder
 
-| ไฟล์ | คำอธิบาย | รันเมื่อ |
+| File | Description | When to run |
 |---|---|---|
-| `schema.sql` | DDL สร้าง tables/views/indexes/triggers + seed data | ครั้งเดียวตอนติดตั้งครั้งแรก (re-runnable) |
-| `rls.sql` | Row Level Security policies | หลัง `schema.sql` (re-runnable) |
+| `schema.sql` | DDL: tables / views / indexes / triggers + seed data | Once at first install (re-runnable) |
+| `rls.sql` | Row Level Security policies | After `schema.sql` (re-runnable) |
 
-## โครงสร้างตาราง
+## Schema overview
 
-ตารางทั้งหมดใช้ prefix `ptc_` เพื่อแยกออกจาก object อื่นใน project
+All tables use the `ptc_` prefix to keep them isolated from other objects in the project.
 
-### Master / config (read-only สำหรับ anon)
+### Master / config (read-only for `anon`)
 
-- **`ptc_recommendations`** (3 rows) — ข้อเสนอแนะ R1/R2/R3 (title, short_title, color_key, hex_color)
-- **`ptc_actions`** (12 rows) — แผนงาน R1A1..R3A4 (plan, sub_items[], timeline, kpis[], target, owners[], report_cycle, ha_ref)
-- **`ptc_status_catalog`** (5 rows) — config สถานะ (label, tailwind classes, hex)
-- **`ptc_fiscal_months`** (12 rows) — เดือนงบประมาณ (month_no 1–12 → Thai label + calendar_month)
+- **`ptc_recommendations`** (3 rows) — recommendations R1/R2/R3 (title, short_title, color_key, hex_color)
+- **`ptc_actions`** (12 rows) — action plans R1A1..R3A4 (plan, sub_items[], timeline, kpis[], target, owners[], report_cycle, ha_ref)
+- **`ptc_status_catalog`** (5 rows) — status configuration (label, tailwind classes, hex)
+- **`ptc_fiscal_months`** (12 rows) — fiscal year months (month_no 1–12 → Thai label + calendar_month)
 
-### Runtime (anon เขียนได้)
+### Runtime (`anon` can write)
 
-- **`ptc_action_progress`** (12 rows, 1:1 กับ actions) — สถานะ runtime (status, progress_pct, actual_value, notes, blockers, last_updated, updated_by)
-- **`ptc_meetings`** — การประชุม PTC (meeting_date, title, status, report_url)
-- **`ptc_agendas`** — วาระการประชุม (FK → ptc_meetings)
+- **`ptc_action_progress`** (12 rows, 1:1 with `ptc_actions`) — runtime status (status, progress_pct, actual_value, notes, blockers, last_updated, updated_by)
+- **`ptc_meetings`** — PTC meetings (meeting_date, title, status, report_url)
+- **`ptc_agendas`** — meeting agenda items (FK → `ptc_meetings`)
 
 ### View
 
-- **`ptc_v_actions_full`** — join actions + progress + recommendations สำหรับ query ครั้งเดียว
+- **`ptc_v_actions_full`** — join of actions + progress + recommendations, fetched in a single query
 
-## ขั้นตอนการติดตั้ง
+## Installation
 
-### 1. สร้าง Supabase project
+### 1. Create a Supabase project
 
-1. ไปที่ [supabase.com](https://supabase.com/) → New project
-2. เลือก region ใกล้ผู้ใช้ (เช่น Singapore)
-3. ตั้ง database password แล้วจดไว้
+1. Go to [supabase.com](https://supabase.com/) → **New project**
+2. Choose a region close to your users (e.g. Singapore)
+3. Set a database password and save it securely
 
-### 2. รัน schema
+### 2. Run `schema.sql`
 
-เปิด **SQL Editor** ใน Supabase Dashboard → New query → paste เนื้อหา `schema.sql` → Run
+Open **SQL Editor** in the Supabase Dashboard → **New query** → paste the contents of `schema.sql` → **Run**
 
-หรือใช้ `psql`:
+Or via `psql`:
 
 ```bash
 psql "postgresql://postgres:PASSWORD@db.PROJECT_REF.supabase.co:5432/postgres" -f supabase/schema.sql
 ```
 
-ไฟล์ `schema.sql` มี `drop table ... cascade` อยู่บนสุด รันซ้ำได้ — ข้อมูลจะถูกล้างและ seed ใหม่ทั้งหมด
+`schema.sql` starts with `drop table ... cascade`, so it is re-runnable — the data will be wiped and re-seeded.
 
-### 3. รัน RLS
+### 3. Run `rls.sql`
 
-เปิด **SQL Editor** → New query → paste เนื้อหา `rls.sql` → Run
+Open **SQL Editor** → **New query** → paste the contents of `rls.sql` → **Run**
 
-ไฟล์จะ cleanup policy เก่าก่อน แล้วสร้างใหม่ (re-runnable เช่นกัน)
+The file cleans up old policies first, then recreates them (also re-runnable).
 
-### 4. ตรวจสอบ
+### 4. Verify
 
-ใน SQL Editor:
+In the SQL Editor:
 
 ```sql
--- นับจำนวน row ในแต่ละตาราง
+-- Count rows in each table
 select 'ptc_recommendations' as t, count(*) from ptc_recommendations
 union all select 'ptc_actions',         count(*) from ptc_actions
 union all select 'ptc_action_progress', count(*) from ptc_action_progress
 union all select 'ptc_status_catalog',  count(*) from ptc_status_catalog
 union all select 'ptc_fiscal_months',   count(*) from ptc_fiscal_months;
 
--- ดู RLS policies
+-- Inspect RLS policies
 select tablename, policyname, roles, cmd
 from pg_policies
 where schemaname = 'public'
 order by tablename, policyname;
 
--- ทดสอบ view
+-- Smoke test the view
 select id, rec_no, plan, status, progress_pct
 from ptc_v_actions_full
 order by rec_no, action_no;
 ```
 
-ผลที่คาดหวัง:
+Expected row counts:
 
-| ตาราง | row count |
+| Table | Row count |
 |---|---|
 | ptc_recommendations | 3 |
 | ptc_actions | 12 |
@@ -90,37 +90,37 @@ order by rec_no, action_no;
 | ptc_status_catalog | 5 |
 | ptc_fiscal_months | 12 |
 
-## Access Model
+## Access model
 
 | Role | SELECT | INSERT / UPDATE / DELETE |
 |---|---|---|
-| `anon` (public) | ทุกตาราง | เฉพาะ runtime: `ptc_action_progress`, `ptc_meetings`, `ptc_agendas` |
-| `authenticated` (login) | ทุกตาราง | ทุกตาราง (รวม master/config) |
-| `service_role` (backend) | ทุกตาราง | ทุกตาราง (bypass RLS) |
+| `anon` (public) | All tables | Runtime only: `ptc_action_progress`, `ptc_meetings`, `ptc_agendas` |
+| `authenticated` (login) | All tables | All tables (including master/config) |
+| `service_role` (backend) | All tables | All tables (bypasses RLS) |
 
-โมเดลนี้ตรงกับของเดิมที่ใช้ Google Apps Script (public read + public write runtime) แต่ป้องกันไม่ให้ anon แก้ไข master data เช่น เปลี่ยนชื่อข้อเสนอแนะ หรือแก้ไข config สถานะ
+This mirrors the legacy Google Apps Script model (public read + public write on runtime) while preventing `anon` from modifying master data — for example, renaming a recommendation or editing status configuration.
 
-## Realtime (Live multi-user sync)
+## Realtime (live multi-user sync)
 
-`schema.sql` จะเพิ่ม `ptc_action_progress` เข้า `supabase_realtime` publication **ให้อัตโนมัติ** ตอนรันครั้งแรก (free tier รองรับ 2M messages + 200 concurrent connections ฟรี)
+`schema.sql` automatically adds `ptc_action_progress` to the `supabase_realtime` publication on first run (the free tier includes 2M messages/month and 200 concurrent connections).
 
-ถ้าต้องเปิดเพิ่มเอง (เช่นเพิ่ม table อื่นเข้า realtime) มี 2 วิธี:
+To enable additional tables (or re-enable manually), there are two options:
 
-**วิธี A — SQL (แนะนำ):**
+**Option A — SQL (recommended):**
 
 ```sql
 alter publication supabase_realtime add table public.ptc_action_progress;
 ```
 
-**วิธี B — Dashboard UI:**
+**Option B — Dashboard UI:**
 
-Database → Publications → เลือก `supabase_realtime` → ติ๊ก table ที่ต้องการ
+Database → Publications → select `supabase_realtime` → tick the tables you want.
 
-> ⚠️ **ห้ามสับสนกับ** Database → Replication
-> เมนู Replication ในหน้า Dashboard คือ **External Replication** (Supabase ETL, private alpha + Pro plan)
-> Realtime ใช้คนละเมนูกัน
+> ⚠️ **Do not confuse this with** Database → Replication
+> The Replication menu in the Dashboard is **External Replication** (Supabase ETL, private alpha + Pro plan).
+> Realtime uses a different menu.
 
-ตรวจสอบสถานะ:
+Verify the current state:
 
 ```sql
 select pubname, schemaname, tablename
@@ -129,46 +129,46 @@ where pubname = 'supabase_realtime'
 order by tablename;
 ```
 
-## ตัวอย่าง query ที่ frontend จะใช้
+## Sample queries used by the frontend
 
 ```sql
--- ดึงข้อมูล dashboard (ทั้ง 12 actions พร้อม progress + rec info)
+-- Load the dashboard (all 12 actions with progress + recommendation info)
 select * from ptc_v_actions_full order by rec_no, action_no;
 
--- ดึงเฉพาะที่ติดขัด/ล่าช้า
+-- Only blocked / delayed items
 select id, plan, status, progress_pct, blockers
 from ptc_v_actions_full
 where status in ('blocked', 'delayed');
 
--- สรุปจำนวนตามสถานะ
+-- Count by status
 select status, count(*)
 from ptc_action_progress
 group by status;
 
--- ดึง config สถานะ (label/สี)
+-- Status configuration (labels + colors)
 select * from ptc_status_catalog order by sort_order;
 
--- ดึง config เดือนงบประมาณ
+-- Fiscal month configuration
 select * from ptc_fiscal_months order by month_no;
 ```
 
-## เพิ่ม action / เปลี่ยนแผน
+## Adding actions / editing the plan
 
-ถ้าต้องการเพิ่ม action ใหม่ หรือเปลี่ยนแผนเดิม ให้แก้ที่ table โดยตรง (ต้อง login เป็น `authenticated`):
+To add a new action or modify an existing plan, edit the tables directly (requires logging in as `authenticated`):
 
 ```sql
--- เพิ่ม progress ให้ action ใหม่ (ต้อง insert ทั้งใน actions และ action_progress)
+-- Add progress for a new action (must insert into both actions and action_progress)
 insert into ptc_actions (id, rec_no, action_no, plan, timeline, start_month, end_month, target, report_cycle, ha_ref)
-values ('R1A5', 1, 5, 'แผนใหม่', 'ต.ค. 68 – มี.ค. 69', 1, 6, '100%', 'รายงาน PTC', 'II-6.1 New');
+values ('R1A5', 1, 5, 'New plan', 'Oct 68 – Mar 69', 1, 6, '100%', 'PTC report', 'II-6.1 New');
 
 insert into ptc_action_progress (action_id) values ('R1A5');
 
--- อัปเดตสถานะ action (anon เขียนได้)
+-- Update an action status (anon can write this)
 update ptc_action_progress
 set status = 'in_progress', progress_pct = 50, last_updated = now(), updated_by = 'PTC'
 where action_id = 'R1A1';
 ```
 
-## Migration จาก Google Sheets ของเดิม
+## Migration from the legacy Google Sheets backend
 
-เมื่อ frontend เปลี่ยนมาใช้ Supabase แล้ว ไฟล์ `src/gas/Code.gs` และ `src/services/gas-api.ts` จะถูกแทนที่ด้วย Supabase JS client ส่วน Google Sheet เดิมสามารถ archive ไว้เป็น backup ได้ (ข้อมูล runtime เช่น progress ที่บันทึกไว้จะหายไป — เริ่มต้นใหม่จาก default `not_started`, 0%)
+Once the frontend is switched to Supabase, the legacy `src/gas/Code.gs` and `src/services/gas-api.ts` files are replaced by the Supabase JS client. The old Google Sheet can be archived as a backup. Note that any runtime data previously recorded (e.g. progress) will be lost — actions start fresh from the default `not_started` / 0%.
