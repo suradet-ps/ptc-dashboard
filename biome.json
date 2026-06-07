@@ -37,6 +37,11 @@
       "bracketSpacing": true
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "html": {
     "parser": {
       "interpolation": true

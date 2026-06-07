@@ -18,20 +18,19 @@ onMounted(async () => {
   }
 });
 
-const meeting = computed(() => meetings.value.find(m => m.id === meetingId));
+const meeting = computed(() => meetings.value.find((m) => m.id === meetingId));
 const meetingAgendas = computed(() => store.getAgendasForMeeting(meetingId));
 
 async function saveAgendaResolution(agendaId: string, resolution: string) {
-  const agenda = agendas.value.find(a => a.id === agendaId);
+  const agenda = agendas.value.find((a) => a.id === agendaId);
   if (agenda) {
     const updated = { ...agenda, resolution };
     try {
       await store.saveAgenda(updated);
       // Show mini toast or just let it be since it's saved.
-    }
-    catch (e: any) {
-      // eslint-disable-next-line no-alert
-      alert(`Fail to save: ${e.message}`);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Unknown error';
+      alert(`Fail to save: ${message}`);
     }
   }
 }
@@ -56,8 +55,7 @@ function openAgendaExport() {
 }
 
 function formatThaiDate(dateStr: string) {
-  if (!dateStr)
-    return '';
+  if (!dateStr) return '';
   const d = new Date(dateStr);
   return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 }

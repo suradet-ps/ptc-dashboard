@@ -9,26 +9,20 @@ const props = defineProps<{
 
 const W = props.width ?? 80;
 const H = props.height ?? 28;
-const color = props.color ?? '#00d4aa';
+const stroke = props.color ?? '#00d4aa';
 
 function points(): string {
-  if (!props.values.length)
-    return '';
-  const xs = props.values.map(
-    (_, i) => (i / Math.max(props.values.length - 1, 1)) * W,
-  );
-  const ys = props.values.map(v => H - (v / 100) * H);
+  if (!props.values.length) return '';
+  const xs = props.values.map((_, i) => (i / Math.max(props.values.length - 1, 1)) * W);
+  const ys = props.values.map((v) => H - (v / 100) * H);
   return xs.map((x, i) => `${x},${ys[i]}`).join(' ');
 }
 
 // Area fill path
 function area(): string {
-  if (!props.values.length)
-    return '';
-  const xs = props.values.map(
-    (_, i) => (i / Math.max(props.values.length - 1, 1)) * W,
-  );
-  const ys = props.values.map(v => H - (v / 100) * H);
+  if (!props.values.length) return '';
+  const xs = props.values.map((_, i) => (i / Math.max(props.values.length - 1, 1)) * W);
+  const ys = props.values.map((v) => H - (v / 100) * H);
   const line = xs.map((x, i) => `${x},${ys[i]}`).join(' L ');
   return `M 0,${H} L ${line} L ${W},${H} Z`;
 }
@@ -45,23 +39,23 @@ const last = props.values.at(-1) ?? 0;
   >
     <defs>
       <linearGradient
-        :id="`sg-${color.replace('#', '')}`"
+        :id="`sg-${stroke.replace('#', '')}`"
         x1="0"
         y1="0"
         x2="0"
         y2="1"
       >
-        <stop offset="0%" :stop-color="color" stop-opacity="0.3" />
-        <stop offset="100%" :stop-color="color" stop-opacity="0" />
+        <stop offset="0%" :stop-color="stroke" stop-opacity="0.3" />
+        <stop offset="100%" :stop-color="stroke" stop-opacity="0" />
       </linearGradient>
     </defs>
     <!-- Area -->
-    <path :d="area()" :fill="`url(#sg-${color.replace('#', '')})`" />
+    <path :d="area()" :fill="`url(#sg-${stroke.replace('#', '')})`" />
     <!-- Line -->
     <polyline
       :points="points()"
       fill="none"
-      :stroke="color"
+      :stroke="stroke"
       stroke-width="1.5"
       stroke-linecap="round"
       stroke-linejoin="round"
@@ -72,7 +66,7 @@ const last = props.values.at(-1) ?? 0;
       :cx="W"
       :cy="H - (last / 100) * H"
       r="2.5"
-      :fill="color"
+      :fill="stroke"
     />
   </svg>
 </template>
