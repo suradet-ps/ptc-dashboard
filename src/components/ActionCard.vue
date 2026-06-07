@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import { useNow } from '@/composables/use-now';
 import { useConfigStore } from '@/stores/config';
 import { useDashboardStore } from '@/stores/dashboard';
 import {
@@ -30,9 +31,11 @@ function onStatusChange(e: Event) {
   store.saveAction(props.action.id, { status: val });
 }
 
+const now = useNow();
+
 const timeAgo = computed(() => {
   if (!props.action.lastUpdated) return null;
-  const diff = Date.now() - new Date(props.action.lastUpdated).getTime();
+  const diff = now.value - new Date(props.action.lastUpdated).getTime();
   const h = Math.floor(diff / 3600000);
   const d = Math.floor(diff / 86400000);
   if (d > 0) return `${d} วันที่แล้ว`;

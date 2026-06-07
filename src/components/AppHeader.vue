@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { onMounted, onUnmounted, ref } from 'vue';
 
+import { useNow } from '@/composables/use-now';
 import { useDashboardStore } from '@/stores/dashboard';
 
 const store = useDashboardStore();
 const { loading, lastSync, error, summary } = storeToRefs(store);
 
-const now = ref(new Date());
-let timer: ReturnType<typeof setInterval>;
-onMounted(() => {
-  timer = setInterval(() => (now.value = new Date()), 1000);
-});
-onUnmounted(() => clearInterval(timer));
+const now = useNow();
 
 function formatTime(d: Date) {
   return d.toLocaleTimeString('th-TH', {
@@ -117,14 +112,14 @@ function formatSync(d: Date | null) {
         />
 
         <!-- Clock -->
-        <div class="text-right hidden sm:block pl-3 border-l border-[var(--color-border)]">
-          <div class="num text-sm font-bold leading-tight text-[var(--color-signal)]">
-            {{ formatTime(now) }}
+          <div class="text-right hidden sm:block pl-3 border-l border-[var(--color-border)]">
+            <div class="num text-sm font-bold leading-tight text-[var(--color-signal)]">
+              {{ formatTime(new Date(now)) }}
+            </div>
+            <div class="text-[0.65rem] font-bold leading-tight text-[var(--color-muted)] uppercase mt-0.5">
+              {{ formatDate(new Date(now)) }}
+            </div>
           </div>
-          <div class="text-[0.65rem] font-bold leading-tight text-[var(--color-muted)] uppercase mt-0.5">
-            {{ formatDate(now) }}
-          </div>
-        </div>
       </div>
     </div>
 

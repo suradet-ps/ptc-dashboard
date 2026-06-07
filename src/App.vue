@@ -3,16 +3,21 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 import AppHeader from '@/components/AppHeader.vue';
+import ConfigErrorScreen from '@/components/ConfigErrorScreen.vue';
 import ToastHost from '@/components/ToastHost.vue';
+import { useConfigStore } from '@/stores/config';
 
 const route = useRoute();
+const configStore = useConfigStore();
 const isPrintView = computed(
   () => route.name === 'smart-ptc-meeting-print' || route.name === 'smart-ptc-agenda-print',
 );
+const hasConfigError = computed(() => Boolean(configStore.loadError));
 </script>
 
 <template>
-  <div v-if="isPrintView">
+  <ConfigErrorScreen v-if="hasConfigError" />
+  <div v-else-if="isPrintView">
     <!-- Clean layout for print views -->
     <router-view />
   </div>
