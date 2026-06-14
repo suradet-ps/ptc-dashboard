@@ -1,6 +1,6 @@
 -- ============================================================
 -- supabase/rls.sql
--- PTC Monitor Dashboard — Row Level Security policies
+-- PTCOS — Row Level Security policies
 --
 -- Run AFTER supabase/schema.sql once the project is set up.
 -- Re-runnable: drops existing policies and helper functions on

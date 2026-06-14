@@ -1,10 +1,10 @@
-# Contributing to PTC Monitor Dashboard
+# Contributing to PTCOS
 
-First off, thank you for considering contributing to the PTC Monitor Dashboard! It's people like you that make this tool better for everyone.
+First off, thank you for considering contributing to PTCOS! It's people like you that make this tool better for everyone.
 
 ## Where do I go from here?
 
-If you've noticed a bug or have a feature request, please [open an issue](https://github.com/suradet-ps/ptc-dashboard/issues).
+If you've noticed a bug or have a feature request, please [open an issue](https://github.com/suradet-ps/ptcos/issues).
 
 ## Development Workflow
 

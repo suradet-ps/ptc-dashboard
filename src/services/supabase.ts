@@ -17,6 +17,6 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
     autoRefreshToken: true,
   },
   global: {
-    headers: { 'x-application-name': 'ptc-dashboard' },
+    headers: { 'x-application-name': 'ptcos' },
   },
 });

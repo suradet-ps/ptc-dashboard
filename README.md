@@ -1,4 +1,4 @@
-# PTC Monitor Dashboard
+# PTCOS
 
 **Pharmacy and Therapeutics Committee (PTC) Quality Improvement Tracker**
 Originally developed for Sa Bot Hospital
@@ -13,11 +13,11 @@ Originally developed for Sa Bot Hospital
 [![Bun](https://img.shields.io/badge/Bun-1.3+-FBF0DF?logo=bun)](https://bun.sh/)
 [![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?logo=vercel)](https://vercel.com/)
 
-[Report Bug](https://github.com/suradet-ps/ptc-dashboard/issues) · [Request Feature](https://github.com/suradet-ps/ptc-dashboard/issues)
+[Report Bug](https://github.com/suradet-ps/ptcos/issues) · [Request Feature](https://github.com/suradet-ps/ptcos/issues)
 
 ---
 
-**PTC Monitor Dashboard** is a lightweight, serverless web application designed to track the progress of quality improvement plans within the Pharmacy Department. Built with **Vue 3** and **TypeScript**, it uses **Supabase** (Postgres + Row Level Security + Realtime) as a fully managed backend, removing the need to host or maintain any server infrastructure.
+**PTCOS** is a lightweight, serverless web application designed to track the progress of quality improvement plans within the Pharmacy Department. Built with **Vue 3** and **TypeScript**, it uses **Supabase** (Postgres + Row Level Security + Realtime) as a fully managed backend, removing the need to host or maintain any server infrastructure.
 
 ---
 
@@ -82,8 +82,8 @@ graph LR
 1. Clone the repository and install dependencies:
 
    ```bash
-   git clone https://github.com/suradet-ps/ptc-dashboard.git
-   cd ptc-dashboard
+   git clone https://github.com/suradet-ps/ptcos.git
+   cd ptcos
    bun install
    ```
 
@@ -125,7 +125,7 @@ The complete schema, RLS policies, and seed data live in the [`supabase/`](supab
 
 The project is pre-configured for seamless deployment on **Vercel** via the included `vercel.json` file.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsuradet-ps%2Fptc-dashboard&env=VITE_SUPABASE_URL%2CVITE_SUPABASE_ANON_KEY)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsuradet-ps%2Fptcos&env=VITE_SUPABASE_URL%2CVITE_SUPABASE_ANON_KEY)
 
 **Manual Vercel Deployment:**
 
@@ -163,7 +163,7 @@ All tables use the `ptc_` prefix to stay isolated from other objects in the Supa
 ## Project Structure
 
 ```
-ptc-dashboard/
+ptcos/
 ├── src/
 │   ├── components/         Vue components (ActionCard, GanttChart, AppHeader, ...)
 │   ├── views/              Route views (Dashboard, SmartPTC sub-views, print layouts)

@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "ptc-dashboard",
+      "name": "ptcos",
       "dependencies": {
         "@supabase/supabase-js": "^2.45.0",
         "pinia": "^3.0.0",

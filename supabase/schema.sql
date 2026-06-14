@@ -1,6 +1,6 @@
 -- ============================================================
 -- supabase/schema.sql
--- PTC Monitor Dashboard — initial schema + seed data
+-- PTCOS — initial schema + seed data
 --
 -- Run this once in Supabase SQL Editor to bootstrap the project.
 -- Re-runnable: drops existing objects before recreating.

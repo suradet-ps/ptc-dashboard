@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We currently support the latest major version of the PTC Monitor Dashboard for security updates.
+We currently support the latest major version of PTCOS for security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -11,7 +11,7 @@ We currently support the latest major version of the PTC Monitor Dashboard for s
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within the PTC Monitor Dashboard, please DO NOT open a public issue. We appreciate your efforts to responsibly disclose your findings.
+If you discover a security vulnerability within PTCOS, please DO NOT open a public issue. We appreciate your efforts to responsibly disclose your findings.
 
 Please report any security issues or vulnerabilities by reaching out via email directly to the repository owners. Include the following details in your report:
 

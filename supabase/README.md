@@ -1,4 +1,4 @@
-# Supabase — PTC Monitor Dashboard
+# Supabase — PTCOS
 
 SQL files for bootstrapping and configuring a Supabase project to support the PTC Dashboard.
 
